@@ -7,7 +7,6 @@ totalfile="$file-$author1-$author2"
 
 # Compile the tex file
 pdflatex --shell-escape -jobname=$totalfile ${file}.tex
-pdflatex --shell-escape -jobname=$totalfile ${file}.tex
 
 if [ "$(uname)" == "Darwin" ]; then
     open ${totalfile}.pdf &
