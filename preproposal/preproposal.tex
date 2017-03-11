@@ -1,0 +1,56 @@
+%!TEX program = xelatex
+
+\documentclass[11pt]{article}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{sidecap}
+\usepackage{clrscode}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{stackengine}
+
+\usepackage[margin=0.75in]{geometry}
+
+\newlength{\tindent}
+\setlength{\tindent}{\parindent}
+\setlength{\parindent}{0pt}
+\renewcommand{\indent}{\hspace*{\tindent}}
+
+
+
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+\titleformat{\subsection}[runin]{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+\begin{centering}
+\Large
+    \textbf{Time-series and Hierarchical Modeling for sc-RNA Expression Levels}  \\
+    \vspace{2mm}
+    \normalsize
+    Skanda Koppula (\url{skoppula@mit.edu}), Karren Yang (\url{karren@mit.edu}) \\
+    \vspace{2mm}
+    \normalsize
+    6.882 Project Pre-Proposal, \today \\
+\end{centering}
+\vspace{5mm}
+
+Cancer cells implanted into mice exhibit patterned levels of RNA expression. The expression in each cancer cell varies over time, and the cells may naturally diverge in their expression during this time. Previous work has looked into an LDA-based clustering of expression vectors for particular time slices, resulting in interesting and biologically meaningful cell grouping shifts over time. \\
+
+This project is interested in constructing the first generative model of this process. Specifically, we look to answer some of the following questions: 
+\begin{enumerate}
+\item Can we apply a topic model based probabalistic model for a collection of expression vectors for a particular time slice? Will a topic model based solution yield meaningful cell type assignments?
+\item How can we apply time-series probabilistic models such as Chinese Restaurant to model cell types over time?
+\item How can we model noise in expression level observations in our probabilistic models? Is it possible to use our model to establish estimates for missing coordinates in expression vectors (a common problem in high-throughput expression measurement machines)?
+\item Is it possible to emulate expression data with a simple sampling processes (for the purposes of testing any models we create)?
+\end{enumerate}
+These were a few lines of inquiry we were interested in pursuing. The authors have access to an sc-RNA expression level dataset through their research lab.
+\end{document}
