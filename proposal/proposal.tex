@@ -24,7 +24,11 @@
 \setlength{\parindent}{0pt}
 \renewcommand{\indent}{\hspace*{\tindent}}
 
-
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\newcommand{\SK}{\textbf{[SK]}\tab}
+\newcommand{\KY}{\textbf{[KY]}\tab}
+\newcommand{\TBD}{\textbf{[TBD]}\tab}
+\newcommand\cdate[1][1cm]{\textbf{[#1]}}
 
 \renewcommand{\thesubsection}{\thesection.\alph{subsection}}
 \titleformat{\subsection}[runin]{\normalfont\large\bfseries}{\thesubsection}{1em}{}
@@ -33,7 +37,7 @@
 
 \begin{centering}
 \Large
-    \textbf{Bayesian Clustering and Topic Modeling for Analyzing Single-Cell RNA Sequencing Data}  \\
+    \textbf{Bayesian Clustering and Topic Modeling of Single-Cell RNA}  \\
     \vspace{2mm}
     \normalsize
     Skanda Koppula (\url{skoppula@mit.edu}), Karren Yang (\url{karren@mit.edu}) \\
@@ -43,42 +47,61 @@
 \end{centering}
 \vspace{5mm}
 
-\begin{abstract}
-
-Tumors are composed of many sub-populations of cells, which exhibit different patterns of gene expression. In order to characterize sub-populations of tumor cells and identify functional gene modules, we propose applying Bayesian methods (parametric and non-parametric) for clustering and topic modeling to single-cell RNA-sequencing (scRNA-seq) data from tumors. We will compare these methods to standard methods for analyzing scRNA-seq data based their ability to identify known cell sub-populations and gene modules from the literature as well as their robustness to noise. We will furthermore determine if integrating the clustering model with the topic model results in superior performance in these tasks. Time permitting, we will attempt to extend these models to accommodate time-series data.
-
-\end{abstract}
-
 \section{Overview}
 
-Using single-cell RNA-sequencing (scRNA-seq) data, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. Given such data, we are primarily interested in answering the following questions:
+Tumors are composed of different sub-populations of cells. These sub-populations exhibit shared patterns of gene expression, and prior research has applied basic measures of statistical distance to cluster cell groups based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. Good clustering of sc-RNA data often has
+biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior art to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. \\
+
+In this project, we aim to apply Bayesian methods to study scRNA-seq datasets from the author's lab. Specifically, we intend to explore the use of a hierarchical topic model and combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to analyze both real and simulated scRNA-seq data. We will compare the results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will explore the use of non-parametric models, and study time-series sc-RNA data. \\
+
+In summary, and in order of importance, we are primarily interested in answering the following questions:
 
 \begin{enumerate}
-    \item Can Bayesian nonparametric topic models, such as the Hierarchical Dirichlet Process (HDP) and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP), extract functional gene modules from this data? Do Bayesian nonparametric topic models perform as well as parametric topic models, such as Latent Dirichlet Allocation (LDA), on this data?
-    \item Can we get meaningful cell-type assignments by clustering cells, using finite or infinite mixture models, based on the output of the topic models?
-    \item How robust are these methods to dropout, a phenomenon commonly observed in real scRNA-seq data?
-    \item Can integrated models of cell clustering and topic modeling yield superior results in these tasks?
+    \item Can we get meaningful cell-type assignments by clustering cells, using finite or infinite mixture models, based on the output of the topic models? How does this compare to existing methods?
+    \item How robust are these methods to data dropout (commonly observed in real scRNA-seq data)?
+    \item Do integrated models of cell clustering and topic modeling yield superior results in these tasks? 
+    \item Can nonparametric topic models, such as the Hierarchical Dirichlet Process (HDP) and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP), extract functional gene modules from this data? Do nonparametric topic models perform as well as parametric topic models on this data?
     \item Can we extend any of these models to time-series data?
-
 \end{enumerate}
 
-Risk: For a 6-7 week project, this list seems ambitious, but we have mitigated the risk in several ways. (1) Although we are primarily interested in the utility of nonparametric methods for topic (gene module) modeling, we are also using Latent Dirichlet Allocation so that subsequent steps can proceed even if the nonparametric methods do not work well. (2) If we become stuck on steps 4-5, we can submit a good report from objectives 1-3.
-
-\section{Tentative Schedule}
-\subsection{Apply LDA and HDP to scRNA-seq data - SK}
-\subsection{Apply IBP-CDP to scRNA-seq data - KY}
-\subsection{Evaluate biological relevance of gene modules from topic models - KY}
-\subsection{Evaluate robustness of topic models to dropout - SK}
-\subsection{Apply finite mixture model to cluster topic model output - SK}
-\subsection{Apply infinite mixture model to cluster topic model output - KY}
-\subsection{Integrate topic modeling and cell clustering - TBA}
-\subsection{Extend model to time-series data - TBA}
-
+\section{Tentative Schedule and Task Breakdown}
 \begin{enumerate}
-    \item Referenced paper, outside/related work
-    \item Outline work to be done
-    \item 4 steps per team member, internal deadlines
-    \item Risks: what might be more difficult than planned, thoughts to mitigate these
-    \item How to evaluate our methods?
+    \item \cdate[04/02] \SK Apply LDA and HDP to scRNA-seq data
+    \item \cdate[04/08] \KY Apply IBP-CDP to scRNA-seq data
+    \item \cdate[04/10] \KY Evaluate biological relevance of gene modules from topic models
+    \item \cdate[04/13] \SK Evaluate robustness of topic models to dropout
+    \item \cdate[04/22] \SK Apply finite mixture model to cluster topic model output
+    \item \cdate[04/25] \KY Apply infinite mixture model to cluster topic model output
+    \item \cdate[05/05] \TBD Integrate topic modeling and cell clustering (MGCTM)
+    \item \cdate[05/05] \TBD Extend model to time-series data
 \end{enumerate}
+
+\section{Risk and Evaluation}
+For a 6-7 week project, this list seems ambitious, but we have mitigated the risk in several ways. (1) Although we are primarily interested in the utility of nonparametric methods for topic (gene module) modeling, we are also using Latent Dirichlet Allocation so that subsequent steps can proceed even if the nonparametric methods do not work well. (2) If we become stuck on steps 4-5, we can submit a good report from objectives 1-3. \\
+
+In addition to standards methods to evaluate model fit (e.g. likelihood of held-out data, model visualization, etc.), we can cross-reference prior work, and, when possible, cross-check the biological interpretation of our results.
+
+\begin{thebibliography}{9}
+    \bibitem{nature} 
+        Spearman-based hierarchical clustering of scRNA-seq.
+        \url{http://www.nature.com/nsmb/journal/v24/n3/fig_tab/nsmb.3365_SF1.html}
+         
+    \bibitem{coexpression} 
+        Exploiting single-cell expression to characterize co-expression replicability.
+        \url{https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0964-6}
+         
+    \bibitem{consensus} 
+        SC3 - consensus clustering of single-cell RNA-Seq data.
+        \url{http://biorxiv.org/content/early/2016/09/02/036558}
+
+    \bibitem{profiling} 
+        SINCERA: A Pipeline for Single-Cell RNA-Seq Profiling Analysis.
+        \url{http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004575}
+
+    \bibitem{pengtao} 
+        Integrating Document Clustering and Topic Modeling.
+        \url{https://arxiv.org/pdf/1309.6874.pdf}
+\end{thebibliography}
+
+
 \end{document}
