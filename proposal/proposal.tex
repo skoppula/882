@@ -27,7 +27,7 @@
 \newcommand\tab[1][1cm]{\hspace*{#1}}
 \newcommand{\SK}{\textbf{[SK]}\tab}
 \newcommand{\KY}{\textbf{[KY]}\tab}
-\newcommand{\TBD}{\textbf{[TBD]}\tab}
+\newcommand{\CO}{\textbf{[CO]}\tab}
 \newcommand\cdate[1][1cm]{\textbf{[#1]}}
 
 \renewcommand{\thesubsection}{\thesection.\alph{subsection}}
@@ -37,7 +37,7 @@
 
 \begin{centering}
 \Large
-    \textbf{Bayesian Clustering and Topic Modeling of Single-Cell RNA}  \\
+    \textbf{Bayesian Clustering and Topic Modeling of Gene Expression Data}  \\
     \vspace{2mm}
     \normalsize
     Skanda Koppula (\url{skoppula@mit.edu}), Karren Yang (\url{karren@mit.edu}) \\
@@ -49,19 +49,28 @@
 
 \section{Overview}
 
-Tumors are composed of different sub-populations of cells. These sub-populations exhibit shared patterns of gene expression, and prior research has applied basic measures of statistical distance to cluster cell groups based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. Good clustering of sc-RNA data often has
-biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior art to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. \\
+Tumors are composed of different sub-populations of cells, and these sub-populations exhibit shared patterns of gene expression. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. In this project, we aim to apply Bayesian methods for clustering and topic modeling to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{TS-DDP}. \\
 
-In this project, we aim to apply Bayesian methods to study scRNA-seq datasets from the author's lab. Specifically, we intend to explore the use of a hierarchical topic model and combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to analyze both real and simulated scRNA-seq data. We will compare the results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will explore the use of non-parametric models, and study time-series sc-RNA data. \\
+Prior research has applied basic measures of statistical distance to cluster cell groups or gene modules based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}.  Good clustering of scRNA-seq data often has biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior work to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. We believe that Bayesian methods for clustering and topic modeling can be more illuminating than these previous methods, due to their consideration of higher-order relationships within the data. \\
 
 In summary, and in order of importance, we are primarily interested in answering the following questions:
 
 \begin{enumerate}
+    \item Do Bayesian topic models such as LDA, HDP and IBP-CDP work well on scRNA-seq data? Can we extract functional gene modules from the topics? \\
+    Topics are to documents what gene modules are to cells; therefore, we will apply these topic models to scRNA-seq datasets to discover genes that tend to be co-expressed in cells, which suggests they are functionally related. We are interested in using LDA, as it is the top-performing parametric topic model and its implementation is available online \cite{LDA}. We are interested in HDP because it is a non-parametric extension of LDA, and it might be more flexible as we would not need to designate the number of gene modules beforehand \cite{HDP}. Its implementation is also available online. Finally, we are interested in IBP-CDP because it offers the nonparametric flexibility of HDP, plus it overcomes the assumptions of HDP that gene modules active in many cells must also be highly expressed \cite{IBP}. Its implementation is not available online, but we plan to ask the authors for their code.
+
     \item Can we get meaningful cell-type assignments by clustering cells, using finite or infinite mixture models, based on the output of the topic models? How does this compare to existing methods?
-    \item How robust are these methods to data dropout (commonly observed in real scRNA-seq data)?
-    \item Do integrated models of cell clustering and topic modeling yield superior results in these tasks? 
-    \item Can nonparametric topic models, such as the Hierarchical Dirichlet Process (HDP) and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP), extract functional gene modules from this data? Do nonparametric topic models perform as well as parametric topic models on this data?
-    \item Can we extend any of these models to time-series data?
+    \\
+    Just as document clustering can be done on topic proportions, we plan to cluster cells based on their gene module proportions. We plan to use a finite Gaussian mixture model, as well as an infinite Gaussian mixture model based on the Dirichlet Process. 
+
+    \item How robust are these methods to data dropout? \\
+    Real scRNA-seq data suffers from dropout (i.e. a gene that was actually expressed in a cell has zero count for that cell, due to noise and limitations in experimental detection). We hypothesize that clustering based on gene module proportions will be more robust to dropout than clustering based on individual gene counts.
+    
+    \item Do integrated models of cell clustering and topic modeling yield superior results in these tasks? \\
+    We plan to compose our best topic model and best clustering method into an integrated model, following the example of the MGCTM \cite{pengtao}. 
+    \item Can we extend any of these models to time-series data? \\
+    We hope to extend our models to time-series data, for example, using Hidden Markov Models or Dependent Dirichlet Process \cite{TS-DDP}.
+
 \end{enumerate}
 
 \section{Tentative Schedule and Task Breakdown}
@@ -72,8 +81,11 @@ In summary, and in order of importance, we are primarily interested in answering
     \item \cdate[04/13] \SK Evaluate robustness of topic models to dropout
     \item \cdate[04/22] \SK Apply finite mixture model to cluster topic model output
     \item \cdate[04/25] \KY Apply infinite mixture model to cluster topic model output
-    \item \cdate[05/05] \TBD Integrate topic modeling and cell clustering (MGCTM)
-    \item \cdate[05/05] \TBD Extend model to time-series data
+    \item \cdate[05/05] \CO Integrate topic modeling and cell clustering \\
+    This task will be planned and divided once the authors have a clearer idea of the most successful models from the earlier steps. Both authors are expected to deliberate on which models will be most appropriate to integrate based on the outcomes of previous steps in this project. Both authors will contribute to the implementation. More will be announced in the progress report.
+    \item \cdate[05/05] \CO Extend model to time-series data \\
+    Similar to the above, this task will be planned and divided once the authors have a clearer idea of the most successful models from the earlier steps. Both authors are expected to deliberate on which models will be most appropriate to extend to time-series data based on the outcomes of previous steps in this project. Both authors will contribute to the implementation. More will be announced in the progress report.
+
 \end{enumerate}
 
 \section{Risk and Evaluation}
@@ -101,6 +113,24 @@ In addition to standards methods to evaluate model fit (e.g. likelihood of held-
     \bibitem{pengtao} 
         Integrating Document Clustering and Topic Modeling.
         \url{https://arxiv.org/pdf/1309.6874.pdf}
+
+    \bibitem{LDA}
+        Latent Dirichlet Allocation.
+        \url{http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf}
+
+    \bibitem{HDP}
+        Hierarchical Dirichlet Processes
+        \url{http://people.eecs.berkeley.edu/~jordan/papers/hdp.pdf}
+
+    \bibitem{IBP}
+        The IBP Compound Dirichlet Process and its Application to Focused Topic Modeling
+        \url{http://www.cs.columbia.edu/~blei/papers/WilliamsonWangHellerBlei2010.pdf}
+
+    \bibitem{TS-DDP}
+        A Time-Series DDP for Functional Proteomics Profiles
+        \url{https://www.ma.utexas.edu/users/pmueller/pap/NM12.pdf}
+
+
 \end{thebibliography}
 
 
