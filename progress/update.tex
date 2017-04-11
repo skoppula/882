@@ -1,0 +1,139 @@
+%!TEX program = xelatex
+
+\documentclass[11pt]{article}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{sidecap}
+\usepackage{clrscode}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{stackengine}
+
+\usepackage[margin=0.75in]{geometry}
+
+\newlength{\tindent}
+\setlength{\tindent}{\parindent}
+\setlength{\parindent}{0pt}
+\renewcommand{\indent}{\hspace*{\tindent}}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\newcommand{\SK}{\textbf{[SK]}\tab}
+\newcommand{\KY}{\textbf{[KY]}\tab}
+\newcommand{\CO}{\textbf{[CO]}\tab}
+\newcommand\cdate[1][1cm]{\textbf{[#1]}}
+
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+\titleformat{\subsection}[runin]{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+\begin{centering}
+\Large
+    \textbf{Bayesian Clustering and Topic Modeling of Gene Expression Data}  \\
+    \vspace{2mm}
+    \normalsize
+    Skanda Koppula (\url{skoppula@mit.edu}), Karren Yang (\url{karren@mit.edu}) \\
+    \vspace{2mm}
+    \normalsize
+    6.882 Project Proposal, \today \\
+\end{centering}
+\vspace{5mm}
+
+\section{Overview}
+
+The progress report (one per team) will be a written pdf document, about 2 pages long,
+reporting on what has been accomplished so far and outlining the work that remains to be done.
+You should write clearly about how you’ve spent your time since the proposal and any preliminary
+findings (positive or negative). If there are multiple participants, the division of time spent
+so far should be made clear. Then you should include a plan (updated and/or revised from the
+proposal, as appropriate) for the time remaining. If there are multiple participants, the division of
+responsibility going forward should be made clear.
+
+\begin{enumerate}
+    \item Do Bayesian topic models such as LDA, HDP and IBP-CDP work well on scRNA-seq data? Can we extract functional gene modules from the topics? \\
+    Topics are to documents what gene modules are to cells; therefore, we will apply these topic models to scRNA-seq datasets to discover genes that tend to be co-expressed in cells, which suggests they are functionally related. We are interested in using LDA, as it is the top-performing parametric topic model and its implementation is available online \cite{LDA}. We are interested in HDP because it is a non-parametric extension of LDA, and it might be more flexible as we would not need to designate the number of gene modules beforehand \cite{HDP}. Its implementation is also available online. Finally, we are interested in IBP-CDP because it offers the nonparametric flexibility of HDP, plus it overcomes the assumptions of HDP that gene modules active in many cells must also be highly expressed \cite{IBP}. Its implementation is not available online, but we plan to ask the authors for their code.
+
+    \item Can we get meaningful cell-type assignments by clustering cells, using finite or infinite mixture models, based on the output of the topic models? How does this compare to existing methods?
+    \\
+    Just as document clustering can be done on topic proportions, we plan to cluster cells based on their gene module proportions. We plan to use a finite Gaussian mixture model, as well as an infinite Gaussian mixture model based on the Dirichlet Process. 
+
+    \item How robust are these methods to data dropout? \\
+    Real scRNA-seq data suffers from dropout (i.e. a gene that was actually expressed in a cell has zero count for that cell, due to noise and limitations in experimental detection). We hypothesize that clustering based on gene module proportions will be more robust to dropout than clustering based on individual gene counts.
+    
+    \item Do integrated models of cell clustering and topic modeling yield superior results in these tasks? \\
+    We plan to compose our best topic model and best clustering method into an integrated model, following the example of the MGCTM \cite{pengtao}. 
+    \item Can we extend any of these models to time-series data? \\
+    We hope to extend our models to time-series data, for example, using Hidden Markov Models or Dependent Dirichlet Process \cite{TS-DDP}.
+
+\end{enumerate}
+
+\section{Tentative Schedule and Task Breakdown}
+\begin{enumerate}
+    \item \cdate[04/02] \SK Apply LDA and HDP to scRNA-seq data
+    \item \cdate[04/08] \KY Apply IBP-CDP to scRNA-seq data
+    \item \cdate[04/10] \KY Evaluate biological relevance of gene modules from topic models
+    \item \cdate[04/13] \SK Evaluate robustness of topic models to dropout
+    \item \cdate[04/22] \SK Apply finite mixture model to cluster topic model output
+    \item \cdate[04/25] \KY Apply infinite mixture model to cluster topic model output
+    \item \cdate[05/05] \CO Integrate topic modeling and cell clustering \\
+    This task will be planned and divided once the authors have a clearer idea of the most successful models from the earlier steps. Both authors are expected to deliberate on which models will be most appropriate to integrate based on the outcomes of previous steps in this project. Both authors will contribute to the implementation. More will be announced in the progress report.
+    \item \cdate[05/05] \CO Extend model to time-series data \\
+    Similar to the above, this task will be planned and divided once the authors have a clearer idea of the most successful models from the earlier steps. Both authors are expected to deliberate on which models will be most appropriate to extend to time-series data based on the outcomes of previous steps in this project. Both authors will contribute to the implementation. More will be announced in the progress report.
+
+\end{enumerate}
+
+\section{Risk and Evaluation}
+For a 6-7 week project, this list seems ambitious, but we have mitigated the risk in several ways. (1) Although we are primarily interested in the utility of nonparametric methods for topic (gene module) modeling, we are also using Latent Dirichlet Allocation so that subsequent steps can proceed even if the nonparametric methods do not work well. (2) If we become stuck on steps 4-5, we can submit a good report from objectives 1-3. \\
+
+In addition to standards methods to evaluate model fit (e.g. likelihood of held-out data, model visualization, etc.), we can cross-reference prior work, and, when possible, cross-check the biological interpretation of our results.
+
+\begin{thebibliography}{9}
+    \bibitem{nature} 
+        Spearman-based hierarchical clustering of scRNA-seq.
+        \url{http://www.nature.com/nsmb/journal/v24/n3/fig_tab/nsmb.3365_SF1.html}
+         
+    \bibitem{coexpression} 
+        Exploiting single-cell expression to characterize co-expression replicability.
+        \url{https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0964-6}
+         
+    \bibitem{consensus} 
+        SC3 - consensus clustering of single-cell RNA-Seq data.
+        \url{http://biorxiv.org/content/early/2016/09/02/036558}
+
+    \bibitem{profiling} 
+        SINCERA: A Pipeline for Single-Cell RNA-Seq Profiling Analysis.
+        \url{http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004575}
+
+    \bibitem{pengtao} 
+        Integrating Document Clustering and Topic Modeling.
+        \url{https://arxiv.org/pdf/1309.6874.pdf}
+
+    \bibitem{LDA}
+        Latent Dirichlet Allocation.
+        \url{http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf}
+
+    \bibitem{HDP}
+        Hierarchical Dirichlet Processes
+        \url{http://people.eecs.berkeley.edu/~jordan/papers/hdp.pdf}
+
+    \bibitem{IBP}
+        The IBP Compound Dirichlet Process and its Application to Focused Topic Modeling
+        \url{http://www.cs.columbia.edu/~blei/papers/WilliamsonWangHellerBlei2010.pdf}
+
+    \bibitem{TS-DDP}
+        A Time-Series DDP for Functional Proteomics Profiles
+        \url{https://www.ma.utexas.edu/users/pmueller/pap/NM12.pdf}
+
+
+\end{thebibliography}
+
+
+\end{document}
