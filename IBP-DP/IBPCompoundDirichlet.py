@@ -1,6 +1,5 @@
-import sampyl as smp
-import autograd.numpy as np
-import autograd.scipy.special as scis
+import numpy as np
+import scipy.special as scis
 import csv
 # testing
 np.seterr(all='raise')
@@ -10,7 +9,32 @@ class IBPCompoundDirichlet(object):
 	def __init__(self):
 		pass
 		
-	
+	def write_to_file(self, file_root):
+		self.get_topics()
+		self.get_topic_assignments()
+
+		topics_file = file_root + "_topics"
+		assignments_file = file_root + "_assignments"
+		pi_phi_file = file_root + "_pi_phi"
+
+		with open(topics_file, 'w') as csvfile:
+			writer = csv.writer(csvfile, delimiter = ' ')
+			for i in range(len(self.beta)):
+				writer.writerow(self.beta[i])
+
+		with open(assignments_file, 'w') as csvfile:
+			writer = csv.writer(csvfile, delimiter = ' ')
+			for i in range(len(self.theta)):
+				writer.writerow(self.theta[i])
+
+		with open(pi_phi_file, 'w') as csvfile:
+			writer = csv.writer(csvfile, delimiter = ' ')
+			writer.writerow(self.pi)
+			writer.writerow(self.phi)
+
+
+
+
 	def get_topics(self):
 		self.beta = []		
 		for k in range(self.n_topics):
@@ -23,7 +47,9 @@ class IBPCompoundDirichlet(object):
 				beta_k = np.array(beta_k)
 			self.beta.append(beta_k)
 		self.beta = np.array(self.beta)
-		print(self.beta)
+
+
+
 
 	def get_topic_assignments(self):
 		self.theta = []
@@ -31,11 +57,14 @@ class IBPCompoundDirichlet(object):
 			theta_m = []
 			for k in range(self.n_topics):
 				theta_m.append(np.count_nonzero(self.ZS[self.DS == m] == k))
-			theta_m = np.array(theta_m)/sum(theta_m)
+			try:
+				theta_m = np.array(theta_m)/sum(theta_m)
+			except FloatingPointError:
+				theta_m = np.array(theta_m)
 			self.theta.append(theta_m)
 		self.theta = np.array(self.theta)
-		print(self.theta)
-			
+
+
 	
 	
 	def fit_data(self, data, n_iter, gamma, alpha, eta):
@@ -73,8 +102,11 @@ class IBPCompoundDirichlet(object):
 	    # Get WS, DS
 	    self.WS, self.DS = _matrix_to_lists(data)
 	    self.n_words = len(self.WS)
+	    print(self.n_words)
 	    self.n_docs = self.DS[-1]+1
 	    self.n_vocab = max(self.WS)+1
+
+	    self.log = 'perplexity_curve'
 
 	    # Initialize gamma
 	    #gamma = np.random.uniform(low = 0.0, high = 50.0)
@@ -102,16 +134,28 @@ class IBPCompoundDirichlet(object):
 		for iteration in range(self.n_iter):
 
 			# Gibbs sampling of topic assignments ZS, topic parameters pi and phi
+
+			self._sample_ZS()
+			
+			print("Iteration", iteration, "Complete z")
+
+
+			# do not sample new inactive pi, phi if this is the last iteration
 			if iteration == self.n_iter-1:
 				self._sample_pi_phi(last_iter = True)
 			else:
 				self._sample_pi_phi()
 
-			self._sample_ZS()
-			
-			print("Iteration", iteration, "Complete")
 
-			print("Perplexity:", self.perplexity())
+			print("Iteration", iteration, "Complete pi phi")
+
+			
+			perplexity = self.perplexity()
+			print("Perplexity:", perplexity)
+
+			with open(self.log, 'a') as file:
+				writer = csv.writer(file, delimiter = ' ')
+				writer.writerow(["Perplexity:", str(perplexity),"Number of topics:", str(self.n_topics)])
 	'''
 	def log_likelihood(self):
 	    prob_w = []
@@ -138,8 +182,7 @@ class IBPCompoundDirichlet(object):
 		return np.sum(np.array(logp_w))
 
 	def perplexity(self):
-		print(self.n_vocab)
-		return np.exp(-self.log_likelihood()/self.n_vocab)
+		return np.exp(-self.log_likelihood()/self.n_words)
 
 
 	def _sample_ZS_prior(self, ZS):
@@ -149,6 +192,7 @@ class IBPCompoundDirichlet(object):
 	    # iterate through and update topic assignments
 
 	    for i in range(self.n_words): # i is word index
+	        
 	        ZS[i] = -1
 
 	        # calculate prob_w, E_theta, paper section 4.1, to approximate PMF for new topic assignment
@@ -173,6 +217,8 @@ class IBPCompoundDirichlet(object):
 
 	    for i in range(self.n_words): # i is word index
 	        self.ZS[i] = -1
+	        if i % 1000 == 0:
+	        	print("Sampling", i, "of", self.n_words, "in ZS")
 	        """
 	        # determine if document index has changed -- if so, need to update E_theta
 	        update_E_theta = False
@@ -236,7 +282,12 @@ class IBPCompoundDirichlet(object):
 	        # Compute second order Taylor approximation
 	        # square brackets in [8]
 	        def g(X,Y,n):
-	            return 1./(2.**(X+Y)*(n+X+Y))
+	            try:
+	            	return 1./(2.**(X+Y)*(n+X+Y))
+	            except FloatingPointError:
+	            	print (n+X+Y)
+	            	exit()
+
 	            
 	        # second derivative
 	        def d2g(X,Y,n):
@@ -324,9 +375,14 @@ class IBPCompoundDirichlet(object):
 	    B = np.empty([self.n_docs,len(active_topics)])
 	    N = np.empty_like(B)
 
+	    # re-index ZS
+	    dict_reindex = dict(zip(active_topics, range(len(active_topics))))
+	    self.ZS = np.array([dict_reindex[z] for z in self.ZS])
+
+
 	    for m in range(B.shape[0]):
-	        for k, old_k in enumerate(active_topics):
-	            N[m,k] = np.count_nonzero(self.ZS[self.DS == m] == old_k)
+	        for k in range(len(active_topics)):
+	            N[m,k] = np.count_nonzero(self.ZS[self.DS == m] == k)
 	            if N[m,k] > 0:
 	                B[m,k] = 1
 	            else:
@@ -340,9 +396,13 @@ class IBPCompoundDirichlet(object):
 	    phi = self._sample_phi(active_topics, B, N)
 	    
 	    # sample pi for the active topics
-	    pi = self._sample_pi(active_topics, B)
-		
+	    pi = self._sample_pi(B)
+
+
 	    if last_iter:
+	    	self.pi = pi
+	    	self.phi = phi
+	    	self.n_topics = len(self.pi)
 	    	return None
 	    
 	    # generate pi for new topics using slice sampling
@@ -369,16 +429,20 @@ class IBPCompoundDirichlet(object):
 	            
 	            def f(pi, upper_limit):
 	                if 0 < pi < upper_limit:
-	                    return np.exp(np.sum(np.array([(1/i)*(1-pi)**i for i in range(1, self.n_docs+1)])) + (self.alpha-1)*np.log(pi) + self.n_docs*np.log(1-pi))
+	                    return np.sum(np.array([(1/i)*(1-pi)**i for i in range(1, self.n_docs+1)])) + (self.alpha-1)*np.log(pi) + self.n_docs*np.log(1-pi)
 	                else:
-	                    return 0
+	                    return -np.inf
 	                
 	            # initialize
 	            sample = np.random.rand()*pi_min
 	           
 	            for it in range(20):
 	                new_sample = np.random.rand()*pi_min
-	                acceptance_prob = min(1, f(new_sample, pi_min)/f(sample, pi_min))
+	                try:
+	                	acceptance_prob = min(1, np.exp(f(new_sample, pi_min)-f(sample, pi_min)))
+	                except FloatingPointError:
+	                	acceptance_prob = 0
+
 	                if acceptance_prob > np.random.rand():
 	                    sample = new_sample
 	            return sample
@@ -388,9 +452,9 @@ class IBPCompoundDirichlet(object):
 	        
 	    return np.array(new_pi[0:-1])
 
-	def _sample_pi(self, active_topics, B):
-		pi = np.empty(len(active_topics))
-		for k in range(len(active_topics)):
+	def _sample_pi(self, B):
+		pi = np.empty(B.shape[1])
+		for k in range(len(pi)):
 	            pi[k] = np.random.beta(np.sum(B[:,k]), 1 + self.n_docs - np.sum(B[:,k]))
 		return pi
 
@@ -413,7 +477,10 @@ class IBPCompoundDirichlet(object):
 
 			for it in range(100):
 				new_sample = np.random.normal()*2+sample
-				acceptance_prob = min(1, np.exp(f(new_sample, B[:,k], N[:,k])-f(sample, B[:,k], N[:,k])))
+				try:
+					acceptance_prob = min(1, np.exp(f(new_sample, B[:,k], N[:,k])-f(sample, B[:,k], N[:,k])))
+				except FloatingPointError:
+					acceptance_prob = 0
 				if acceptance_prob > np.random.rand():
 					sample = new_sample
 			return sample
