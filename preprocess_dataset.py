@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[3]:
 
 import pandas as pd
 import os.path
@@ -9,7 +9,7 @@ import sys
 import numpy as np
 
 
-# In[4]:
+# In[26]:
 
 def cut_out_zero_rows(data):
     return data.loc[~(data == 0).all(axis=1)]
@@ -18,10 +18,11 @@ def cut_out_zero_cols(data):
     return data.loc[:, ~(data == 0).all(axis=0)]
 
 def load_dataset(preprocessed_path='dataset/preprocessed/human_melanoma_data.npy',
-                 raw_path='dataset/human_melanoma_data.tsv'):
+                 raw_path='dataset/human_melanoma_data.tsv', filter_std=None, load=True):
 
-    if os.path.isfile(preprocessed_path):
-        return np.load(preprocessed_path),             np.load(preprocessed_path.split('.')[0] + "_column_lbls.npy"),             np.load(preprocessed_path.split('.')[0] + "_row_lbls.npy")
+    preprocessed_data_path = preprocessed_path.split('.')[0] + '_' + str(filter_std) + '.npy'
+    if os.path.isfile(preprocessed_data_path) and load:
+        return np.load(preprocessed_data_path),  np.load(preprocessed_path.split('.')[0] + "_column_lbls.npy"), np.load(preprocessed_path.split('.')[0] + "_row_lbls.npy")
 
     elif os.path.isfile(raw_path):
         expr_data = pd.read_csv(raw_path, delimiter='\t').T
@@ -56,13 +57,22 @@ def load_dataset(preprocessed_path='dataset/preprocessed/human_melanoma_data.npy
         print("After cutting out all-zero columns [genes]:")
         print("\tNumber of cells:", expr_data.shape[0])
         print("\tNumber of genes:", expr_data.shape[1])
-
+        
+        # remove low STD cols (genes)
+        stds = np.std(expr_data, axis=0)
+        keep_idxs = stds.argsort()[int(len(stds)*filter_std):]
+        threshold = np.sort(stds)[int(len(stds)*filter_std)]
+        expr_data = np.take(expr_data,keep_idxs, axis=1)
+        print("After cutting out the bottom %f fraction of genes with low STD (<%f):" % (filter_std, threshold))
+        print("\tNumber of cells:", expr_data.shape[0])
+        print("\tNumber of genes:", expr_data.shape[1])
+        
         expr_data = expr_data.astype('int')
 
         if not os.path.isdir('dataset/preprocessed/'):
             os.mkdir('dataset/preprocessed/')
 
-        np.save(preprocessed_path, expr_data.values)
+        np.save(preprocessed_data_path, expr_data.values)
         np.save(preprocessed_path.split('.')[0] + "_column_lbls.npy", expr_data.columns.values)
         np.save(preprocessed_path.split('.')[0] + "_row_lbls.npy", expr_data.index.values)
 
@@ -73,8 +83,20 @@ def load_dataset(preprocessed_path='dataset/preprocessed/human_melanoma_data.npy
         sys.exit(1)
 
 
-# In[ ]:
-if __name__ == "__main__":
-    data, genes, cells = load_dataset()
-    print("Data shape:", data.shape)
+# In[27]:
+
+# data, genes, cells = load_dataset(filter_std=0.25)
+# print("Data shape:", data.shape)
+
+
+# In[28]:
+
+# data, genes, cells = load_dataset(filter_std=0.1)
+# print("Data shape:", data.shape)
+
+
+# In[29]:
+
+# data, genes, cells = load_dataset(filter_std=0)
+# print("Data shape:", data.shape)
 

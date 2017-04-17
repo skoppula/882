@@ -1,3 +1,4 @@
 dataset
 __pycache__
 .ipynb*
+lda_data_bak/*
