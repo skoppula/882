@@ -23,6 +23,7 @@
 \setlength{\tindent}{\parindent}
 \setlength{\parindent}{0pt}
 \renewcommand{\indent}{\hspace*{\tindent}}
+\floatplacement{figure}{H}
 
 \newcommand\tab[1][1cm]{\hspace*{#1}}
 \newcommand{\SK}{\textbf{[SK]}\tab}
@@ -56,37 +57,55 @@ accurately based on their gene expression levels. \footnote{The genes in gene mo
 
 We were unable to yield any results using Python's out-of-the-box implementation of \texttt{lda} \cite{lda}. With our 250 MB dataset, the collapsed Gibbs sampler used in the implementation was taking too long to produce samples, even on larger server-grade machines and with a small number of LDA clusters. We explored modifying the source to parallelize the sampling, but found the source to be crabbed and hard to follow. \\
 
-In our search for an alternative, we explored another implementation that used online variational bayes for posterior estimate \cite{ovb, online}, and a broken \texttt{C++} Gibbs sampler for LDA that we modified to work \cite{plda}. We were able to get this latter sampler running parallel across multiple cores, with a burn-in of 100 iterations. We compare these two posterior estimation approaches using our entire dataset, with a 10\% held-out testing partition. We experimented with $k=5,10,25,\text{ and } 50$ clusters.
+In our search for an alternative, we explored another implementation that used online mean-field variational bayes for posterior estimate \cite{ovb, online}, and a broken \texttt{C++} Gibbs sampler for LDA that we modified to work \cite{plda}. We were able to get this latter sampler running parallel across multiple cores, with a burn-in of 100 iterations. We compare these two posterior estimation approaches using our entire dataset, with a 10\% held-out testing partition. We experimented with
+$k=5,10,25,\text{ and } 50$ clusters. \\
 
-Figure \ref{fig:time} in the Appendix shows the time to complete each estimation method. As expected, Gibbs scales poorly with the parameter dimensionality and is strictly worse than online variational Bayes across all studied topic counts.
+Figure \ref{fig:time} in the Appendix shows the time to complete each estimation method. As expected, Gibbs scales poorly with the parameter dimensionality and is strictly worse than online variational Bayes across all studied topic counts. \\
 
-Figure \ref{fig:time} in the Appendix shows the time to complete each estimation method. As expected, Gibbs scales poorly with the parameter dimensionality and is strictly worse than online variational Bayes across all studied topic counts.
+We had time to calculate perplexity and log-likelihood for the OVB parameters, and very surprisingly, we find an increasing log-likelihood for larger cluster sizes on a held-out test set (Figure \ref{fig:ll}). We are currently trying to understand whether this is because of programming error or a legitimate result. \\
 
-Note that these $p$-values do \textit{not} factor for multiple hypothesis corrections, so could be misleadingly significant.
+As is standard in computational gene module method validation, we use a hypergeometric test to compare our topics' collections of genes, with existing collections of genes catalogued in the comprehensive gene module database, \texttt{MSigDB} \cite{msigdb}. Figure \ref{fig:pathways} in the Appendix shows topic-to-\texttt{MSigDB} module matches for which the $p$-value of the match is at least less than 0.3. Models with larger clusters tend to have more matches with higher significance. There
+a very slightly higher number of matches using the topics discovered by parallelized Gibbs. There are repeat matches, which is slightly disheartening. We note however that these $p$-values do \textit{not} factor for multiple hypothesis corrections (yet), so could be misleadingly significant!
 
-\section{Division of Work}
+\section{Clustering Model: Finite-Sized Mixture Model}
+
+We are currently implementing from scratch the mixture model specified by the plate model in Figure \ref{fig:plate}. The underlying assumption of behind the model is that the cell cluster assignment, $z_i$, would be indicative of it's gene expression values as well. Our implementation uses \texttt{numpy}, and we are exploring backends to make posterior inference computationally feasible (our current implementation, which uses a Gibbs sampler, overflows memory, so we are 
+implementing stochastic variational methods, like used in our LDA experiments).
 
 \section{Remaining Work and Schedule}
-- robust to dropout
-- time series
+We are making progress as per the schedule outlined in our proposal. Apart from continuing with work on the finite-sized mixture model, we plan on running a few experiments to test robustness of our methods to dropout, and scaling IBP and HDP to the full dataset.
 
 \section{Appendix}
 \begin{figure}
-    \label{fig:time}
     \centering
     \includegraphics[width=0.5\textwidth]{time}
     \caption{Comparison of the running times of each of the posterior estimation methods across various cluster sizes.}
+    \label{fig:time}
 \end{figure}
 
 \begin{figure}
-    \label{fig:ll}
     \centering
     \includegraphics[width=0.5\textwidth]{ll}
     \caption{Log-likelihood of the held-out testing set, across various cluster sizes.}
+    \label{fig:ll}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\textwidth]{pathways}
+    \caption{Matches between the gene collections found in LDA topics and published gene sets in \texttt{MSigDB}.}
+    \label{fig:pathways}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.3\textwidth]{mixture}
+    \caption{Finite \texttt{K}-sized mixture model currently implemented. $\theta$ is the parameter for every cluster component, represented from a categorical draw of over all genes. $z_i$ is the cluster assignment, and $\phi$ is the distribution of clusters. As usual, $\alpha, \beta$ are hyper-parameters.}
+    \label{fig:plate}
 \end{figure}
 
 \begin{thebibliography}{9}
-    \bibitem{nature} 
+    \bibitem{hg} 
         The XL-mHG Test For Enrichment: A Technical Report.
         \url{https://arxiv.org/pdf/1507.07905.pdf}
          
