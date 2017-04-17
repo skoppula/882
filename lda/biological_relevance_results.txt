@@ -1,0 +1,37 @@
+GIBBS TOPICS
+	cluster_size: 5
+	cluster_size: 10
+		match: topic  1 ,  KINSEY_TARGETS_OF_EWSR1_FLII_FUSION_UP , pval: 0.041958041958
+		match: topic  1 ,  PILON_KLF1_TARGETS_DN , pval: 0.137062937063
+		match: topic  6 ,  GRAESSMANN_APOPTOSIS_BY_DOXORUBICIN_DN , pval: 0.263736263736
+	cluster_size: 25
+		match: topic  8 ,  PILON_KLF1_TARGETS_DN , pval: 0.263736263736
+		match: topic  22 ,  KINSEY_TARGETS_OF_EWSR1_FLII_FUSION_UP , pval: 0.041958041958
+		match: topic  22 ,  PILON_KLF1_TARGETS_DN , pval: 0.137062937063
+		match: topic  22 ,  GRAESSMANN_APOPTOSIS_BY_DOXORUBICIN_DN , pval: 0.263736263736
+	cluster_size: 50
+		match: topic  2 ,  ROME_INSULIN_TARGETS_IN_MUSCLE_UP , pval: 0.193006993007
+		match: topic  3 ,  PILON_KLF1_TARGETS_DN , pval: 0.00699300699301
+		match: topic  6 ,  PILON_KLF1_TARGETS_DN , pval: 0.263736263736
+		match: topic  7 ,  BLALOCK_ALZHEIMERS_DISEASE_UP , pval: 0.018648018648
+		match: topic  17 ,  KINSEY_TARGETS_OF_EWSR1_FLII_FUSION_UP , pval: 0.041958041958
+		match: topic  17 ,  PILON_KLF1_TARGETS_DN , pval: 0.193006993007
+		match: topic  22 ,  PILON_KLF1_TARGETS_DN , pval: 0.153846153846
+		match: topic  24 ,  WEI_MYCN_TARGETS_WITH_E_BOX , pval: 0.0839160839161
+OVB TOPICS
+	cluster_size: 5
+	cluster_size: 10
+		match: topic  5 ,  PILON_KLF1_TARGETS_DN , pval: 0.263736263736
+	cluster_size: 25
+		match: topic  5 ,  DIAZ_CHRONIC_MEYLOGENOUS_LEUKEMIA_UP , pval: 0.263736263736
+		match: topic  8 ,  KINSEY_TARGETS_OF_EWSR1_FLII_FUSION_UP , pval: 0.041958041958
+		match: topic  15 ,  PUJANA_ATM_PCC_NETWORK , pval: 0.263736263736
+		match: topic  15 ,  PUJANA_BRCA1_PCC_NETWORK , pval: 0.263736263736
+	cluster_size: 50
+		match: topic  6 ,  GRAESSMANN_APOPTOSIS_BY_DOXORUBICIN_DN , pval: 0.263736263736
+		match: topic  15 ,  PUJANA_ATM_PCC_NETWORK , pval: 0.263736263736
+		match: topic  22 ,  MARSON_BOUND_BY_FOXP3_UNSTIMULATED , pval: 0.263736263736
+		match: topic  28 ,  PILON_KLF1_TARGETS_DN , pval: 0.201398601399
+		match: topic  38 ,  PUJANA_BRCA1_PCC_NETWORK , pval: 0.263736263736
+		match: topic  41 ,  MARSON_BOUND_BY_FOXP3_UNSTIMULATED , pval: 0.263736263736
+		match: topic  42 ,  KINSEY_TARGETS_OF_EWSR1_FLII_FUSION_UP , pval: 0.193006993007
