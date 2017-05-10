@@ -114,6 +114,18 @@ In the context of analyzing gene expression data, we are interested in discoveri
 \subsection{Implementation} 
 \subsection{Experiments} 
 
+1. Here's the breakdown of work done insofar: LDA implementation, LDA experiments, and LDA biological relevance benchmarking was finished by Skanda (first two sections in the results). Karren completed the experiments involved HDP, the IBP-DP, Gene Set Enrichment implementation, and the IBP-DP experiments (second two sections in the results).
+
+Breakdown of work remaining: we plan on slightly shifting our milestones from our proposal. Specifically, we plan on shifting our more experimentation based milestones (e.g. how robust are these parametric/non-parametrics to data dropout, wrestling with pre-existing mixture model implementations to scale to our full datasets), and focus more on model implementation and formulation. Specifically, we were interested in jumping to our last two proposal points: formulating a dynamic topic
+model for RNA-seq [1], and finite-sized joint clustering and topic model [2].
+
+Specifically, in the upcoming work, there's two sub-investigations, which we were going to assign one to each of us. One person would formulate and implement the dynamic topic model with LDA to try on a subset of our RNA-Seq data. The other member would be responsible for formulating and implementing finite-sized joint clustering and topic model for our subset of our RNA-Seq data.
+
+2. More details about the Gibbs sampler: We had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). We didn't extensively explore varying these values, but trying out significantly more iterations (700) didn't seem to change the topic's word distributions significantly. We could explore this in more detail for the final report. There was one sampling chain per core, with four cores. Not sure exactly what you had in mind by reporting
+'performance details', other than time for estimation/core, but maybe a somewhat more fair comparison, like test perplexity/instructions executed during posterior estimation?
+
+3. More details about biological significance: Good question about # of topics affecting the results for the hypergeometric test for biological relevance/correlation with existing biologically annotated. This is something I'm not too sure about, and why we experience the results we do. That said, # topics is something that we were experimented with, but soon realized we didn't consider a broad enough range, after seeing the results from our non-parametric model afterward. More
+investigation and thought will need to go into this for the final report.
 
 
 \section{Dynamic Time Model} 
