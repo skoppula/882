@@ -31,8 +31,8 @@
 \begin{document} 
 
 \twocolumn[
-\icmltitle{Bayesian Clustering and Topic Discovery \\ 
-           in Gene Expression Data}
+\icmltitle{Bayesian Clustering and Topic Discovery: \\ 
+           Adventures with Gene Expression Data}
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -50,71 +50,110 @@
 \vskip 0.3in
 ]
 
-\begin{abstract} 
-    We report the results using various Bayesian models to analyze gene expression data. Our exploration includes parallelized LDA, mixture models, dynamic-time topic models, topic-clustering models, and non-parametric models, implemented in \texttt{numpy}, \texttt{C++}, and \texttt{Edward}. We evaluate our methods using held-out likelihood, posterior predictive checks, and biological meaningfulness testing.
-\end{abstract} 
-
 \section{Introduction}
 \label{intro}
-
+% copied from proposal
 Tumors are composed of different sub-populations of cells, and these sub-populations often exhibit shared patterns of gene expression. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. 
 
-In this project, we applied Bayesian methods for clustering and topic discovery to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing
-scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the
-results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{tsdpp}. \\
-
-\section{Prior work}
+\subsection{Prior work}
+% copied from proposal
 Prior research has applied basic measures of statistical distance to cluster cell groups or gene modules based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}.  Good clustering of scRNA-seq data often has biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior work to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. We believe that Bayesian methods for clustering and topic modeling can be more illuminating than these previous methods, due to their consideration of higher-order relationships within the data. \\
 
-
-\section{Format of the Paper} 
- 
-\subsection{Partitioning the Text} 
+\subsection{Description of Data}
 
 \begin{figure}[ht]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{figs/examplegraph}}
-\caption{Historical locations and number of accepted papers for International
-  Machine Learning Conferences (ICML 1993 -- ICML 2008) and
-  International Workshops on Machine Learning (ML 1988 -- ML
-  1992). At the time this figure was produced, the number of
-  accepted papers for ICML 2008 was unknown and instead estimated.}
-\label{icml-historical}
+\caption{This is a demo figure.}
+\label{alabel}
 \end{center}
 \vskip -0.2in
 \end{figure} 
 
-\subsection{Algorithms}
+\subsection{Structure of Report}
+% copied from proposal
+In this project, we applied Bayesian methods for clustering and topic discovery to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing
+scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the
+results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{tsdpp}. \\
 
-If you are using \LaTeX, please use the ``algorithm'' and ``algorithmic'' 
-environments to format pseudocode. These require 
-the corresponding stylefiles, algorithm.sty and 
-algorithmic.sty, which are supplied with this package. 
-Algorithm~\ref{alg:example} shows an example. 
 
-\begin{algorithm}[tb]
-   \caption{Bubble Sort}
-   \label{alg:example}
-\begin{algorithmic}
-   \STATE {\bfseries Input:} data $x_i$, size $m$
-   \REPEAT
-   \STATE Initialize $noChange = true$.
-   \FOR{$i=1$ {\bfseries to} $m-1$}
-   \IF{$x_i > x_{i+1}$} 
-   \STATE Swap $x_i$ and $x_{i+1}$
-   \STATE $noChange = false$
-   \ENDIF
-   \ENDFOR
-   \UNTIL{$noChange$ is $true$}
-\end{algorithmic}
-\end{algorithm}
- 
-\subsection{Citations and References} 
+    We report the results using various Bayesian models to analyze gene expression data. Our exploration includes parallelized LDA, mixture models, dynamic-time topic models, topic-clustering models, and non-parametric models, implemented in \texttt{numpy}, \texttt{C++}, and \texttt{Edward}. We evaluate our methods using held-out likelihood, posterior predictive checks, and biological meaningfulness testing.
 
-\section*{Acknowledgments} 
- 
-support.  
+
+
+\section{Latent Dirichlet Allocation} 
+\subsection{Model Description} 
+    Algorithm~\ref{alg:example} describes the generative process for LDA.
+
+    \begin{algorithm}[tb]
+       \caption{Latent Dirichlet Allocation}
+       \label{alg:example}
+    \begin{algorithmic}
+       \STATE {\bfseries Input:} data $x_i$, size $m$
+       \REPEAT
+       \STATE Initialize $noChange = true$.
+       \FOR{$i=1$ {\bfseries to} $m-1$}
+       \IF{$x_i > x_{i+1}$} 
+       \STATE Swap $x_i$ and $x_{i+1}$
+       \STATE $noChange = false$
+       \ENDIF
+       \ENDFOR
+       \UNTIL{$noChange$ is $true$}
+    \end{algorithmic}
+    \end{algorithm}
+\subsection{Implementation} 
+\subsection{Experiments} 
+
+
+
+
+
+\section{Dirichlet Mixture Model} 
+\subsection{Model Description} 
+    Algorithm~\ref{alg:example} describes the generative process for the mixture odel.
+
+    \begin{algorithm}[tb]
+       \caption{Mixture Model}
+       \label{alg:example}
+    \begin{algorithmic}
+       \STATE {\bfseries Input:} data $x_i$, size $m$
+       \REPEAT
+       \STATE Initialize $noChange = true$.
+       \FOR{$i=1$ {\bfseries to} $m-1$}
+       \IF{$x_i > x_{i+1}$} 
+       \STATE Swap $x_i$ and $x_{i+1}$
+       \STATE $noChange = false$
+       \ENDIF
+       \ENDFOR
+       \UNTIL{$noChange$ is $true$}
+    \end{algorithmic}
+    \end{algorithm}
+\subsection{Implementation} 
+\subsection{Experiments} 
+
+
+
+\section{Dynamic Time Model} 
+\subsection{Model Description} 
+\subsection{Implementation} 
+\subsection{Experiments} 
+
+
+
+
+\section{Document Topic-Clustering Model} 
+\subsection{Model Description} 
+\subsection{Implementation} 
+\subsection{Experiments} 
+
+
+
+\section{Non-parametric Models: IBP and HDP} 
+\subsection{Model Description} 
+\subsection{Implementation} 
+\subsection{Experiments} 
+
 
 % In the unusual situation where you want a paper to appear in the
 % references without citing it in the main text, use \nocite
