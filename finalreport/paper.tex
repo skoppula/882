@@ -42,47 +42,30 @@
 \icmladdress{Massachusetts Institute of Technology,
             Cambridge, MA 02139 USA}
 
-% You may provide any keywords that you 
-% find helpful for describing your paper; these are used to populate 
-% the "keywords" metadata in the PDF but will not be shown in the document
-\icmlkeywords{boring formatting information, machine learning, ICML}
+\icmlkeywords{topic models, bayesian clustering, gene expression, gene modules}
 
 \vskip 0.3in
 ]
 
 \section{Introduction}
 \label{intro}
-% copied from proposal
-Tumors are composed of different sub-populations of cells, and these sub-populations often exhibit shared patterns of gene expression. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. 
+Tumors cell lines are composed of different sub-populations of cells which often exhibit shared patterns of gene expression. Biologists are interested in two key questions: given gene expressions values, (1) can we identify cell clusterings, and (2) can we identify clusters of biologically-related genes? Our goal with this project was to answer both these two questions using Bayesian methods.
 
-\subsection{Prior work}
-% copied from proposal
-Prior research has applied basic measures of statistical distance to cluster cell groups or gene modules based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}.  Good clustering of scRNA-seq data often has biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior work to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. We believe that Bayesian methods for clustering and topic modeling can be more illuminating than these previous methods, due to their consideration of higher-order relationships within the data. \\
+In brief, we explored the use of three Bayesian clustering methods (a vanilla mixture, integrated topic-mixture, and non-parametric models) to address the first question, and two topic models (vanilla and a dynamic-topic LDA) to address the second. 
 
 \subsection{Description of Data}
+Using a contemporary gene sequencing machine, we obtained samples of single-cell RNA-sequencing data (scRNA-seq) taken from tumors in mice. Our data consisted of the expression values of 22,712 genes for each of 4645 cells. In total, the dataset amounted to 0.86 GB, presenting significant computational challenges when attempting posterior estimation. Apart from a few computational tricks (online inference, multi-core parallelization), for most methods, we pruned non-informative genes from the dataset, ranking based on the deviation in value across cells \footnote{We recognize that this can bias towards noisy genes. We favor this method because it is simple and easy to implement, and a practice used in literature \cite{pruning}}. We eschewed dimensionality reduction techniques such as PCA because of loss of its direct feature interpretability. The complete dataset, as well our preprocessed and pruned versions, are available at \cite{dataset}.
 
-\begin{figure}[ht]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{figs/examplegraph}}
-\caption{This is a demo figure.}
-\label{alabel}
-\end{center}
-\vskip -0.2in
-\end{figure} 
+\subsection{Prior work}
+Prior research has explored the use of various computational techniques to analyze gene expression data. Most commonly, Spearman and Pearson correlation metrics are frequently used infer sets of genes that cluster together \cite{profiling, nature}. Other techniques, including PCA followed by linear regression, has been used for expression-based cell clustering \cite{transcriptomics}. Yu et al. propose a unsupervised classifier ensemble as another approach to cell clustering \cite{consensus}. 
+
+More Bayesian approaches have also been tried in prior work from the Pe'er lab. \cite{bayesge2} uses a Heirarchical Dirichlet Mixture Model to learn cell clusterings. \cite{bayesge1} builds on this to jointly learn optimal normalization pre-processing of the data. Bayesian networks have also been used in an attempt to learn gene dependencies from expression data \cite{bayesge3}.
 
 \subsection{Structure of Report}
-% copied from proposal
-In this project, we applied Bayesian methods for clustering and topic discovery to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing
-scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the
-results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{tsdpp}. \\
-
-
-    We report the results using various Bayesian models to analyze gene expression data. Our exploration includes parallelized LDA, mixture models, dynamic-time topic models, topic-clustering models, and non-parametric models, implemented in \texttt{numpy}, \texttt{C++}, and \texttt{Edward}. We evaluate our methods using held-out likelihood, posterior predictive checks, and biological meaningfulness testing.
-
-
+    We first discuss our experiments using Bayesian topic models to discover related sets of genes in a 'topic': LDA in Section~\ref{ldasec} and Dynamic Time Models in Section~\ref{dtmsec}. We discuss our experiments in clustering: Dirichlet Mixtures in Section~\ref{mmsec}, Integrated Topic-Clustering in Section~\ref{intsec}, and non-parametric models in Section~\ref{nonparametricsec}. Finally, we conclude our paper with our obversations from across all studies. 
 
 \section{Latent Dirichlet Allocation} 
+\label{ldasec}
 \subsection{Model Description} 
     Algorithm~\ref{alg:example} describes the generative process for LDA.
 
@@ -105,11 +88,22 @@ results of these methods with standard methods used in prior work, and evaluate 
 \subsection{Implementation} 
 \subsection{Experiments} 
 
+\begin{figure}[ht]
+\vskip 0.2in
+\begin{center}
+\centerline{\includegraphics[width=\columnwidth]{figs/examplegraph}}
+\caption{This is a demo figure.}
+\label{alabel}
+\end{center}
+\vskip -0.2in
+\end{figure} 
+
 
 
 
 
 \section{Dirichlet Mixture Model} 
+\label{mmsec}
 \subsection{Model Description} 
     Algorithm~\ref{alg:example} describes the generative process for the mixture odel.
 
@@ -135,6 +129,7 @@ results of these methods with standard methods used in prior work, and evaluate 
 
 
 \section{Dynamic Time Model} 
+\label{dtmsec}
 \subsection{Model Description} 
 \subsection{Implementation} 
 \subsection{Experiments} 
@@ -142,7 +137,8 @@ results of these methods with standard methods used in prior work, and evaluate 
 
 
 
-\section{Document Topic-Clustering Model} 
+\section{Integrated Topic-Clustering Model} 
+\label{intsec}
 \subsection{Model Description} 
 \subsection{Implementation} 
 \subsection{Experiments} 
@@ -150,6 +146,7 @@ results of these methods with standard methods used in prior work, and evaluate 
 
 
 \section{Non-parametric Models: IBP and HDP} 
+\label{nonparametricsec}
 \subsection{Model Description} 
 \subsection{Implementation} 
 \subsection{Experiments} 
@@ -161,5 +158,9 @@ results of these methods with standard methods used in prior work, and evaluate 
 
 \bibliography{citations}
 \bibliographystyle{sty/icml2013}
+
+
+\section{Appendix} 
+\subsection{Latent Dirichlet Allocation}
 
 \end{document} 
