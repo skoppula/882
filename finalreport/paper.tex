@@ -67,28 +67,16 @@ More Bayesian approaches have also been tried in prior work from the Pe'er lab. 
 \section{Latent Dirichlet Allocation} 
 \label{ldasec}
 \subsection{Model Description} 
-    Algorithm~\ref{alg:example} describes the generative process for LDA.
+In the generative process for LDA, the topic assigned to a word in a document is a drawn from the document's topic distribution. The identity of the word is drawn from topic's word distribution. Assuming the reader is familiar with LDA, we relegate further details and formalization of the model to \cite{LDA}.
 
-    \begin{algorithm}[tb]
-       \caption{Latent Dirichlet Allocation}
-       \label{alg:example}
-    \begin{algorithmic}
-       \STATE {\bfseries Input:} data $x_i$, size $m$
-       \REPEAT
-       \STATE Initialize $noChange = true$.
-       \FOR{$i=1$ {\bfseries to} $m-1$}
-       \IF{$x_i > x_{i+1}$} 
-       \STATE Swap $x_i$ and $x_{i+1}$
-       \STATE $noChange = false$
-       \ENDIF
-       \ENDFOR
-       \UNTIL{$noChange$ is $true$}
-    \end{algorithmic}
-    \end{algorithm}
+In the context of analyzing gene expression data, we are interested in discovering 'topics' that comprise of a set of top-$N$ genes within the topic distribution that are biologically related. For example, together the genes may direct a specific chemical function in a cell. Biologists denote such sets of genes as 'gene modules' which can be cross-referenced with existing gene module databases.
+
 \subsection{Implementation} 
+
 \subsection{Experiments} 
 
-\begin{figure}[ht]
+
+\begin{figure}[h]
 \vskip 0.2in
 \begin{center}
 \centerline{\includegraphics[width=\columnwidth]{figs/examplegraph}}
