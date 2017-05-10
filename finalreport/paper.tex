@@ -32,7 +32,7 @@
 
 \twocolumn[
 \icmltitle{Bayesian Clustering and Topic Discovery \\ 
-           in Melonoma Cell Gene Expression Data}
+           in Gene Expression Data}
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -51,7 +51,7 @@
 ]
 
 \begin{abstract} 
-    We present a report of the methods and results of our use of various Bayesian models to analyze  gene expression data. We explored parallelized LDA, mixture models, dynamic-time topic models, topic clustering models, and non-parametric models, implemented in \texttt{numpy}, \texttt{C++}, and \texttt{Edward}. Overcoming problems associated with the size and dimensionality of our dataset and difficulty of posterior inference, we report held-out likelihood, performance metrics, posterior predictive checks and, most notably, meaningful biologically-meaningful topics.
+    We report the results using various Bayesian models to analyze gene expression data. Our exploration includes parallelized LDA, mixture models, dynamic-time topic models, topic-clustering models, and non-parametric models, implemented in \texttt{numpy}, \texttt{C++}, and \texttt{Edward}. We evaluate our methods using held-out likelihood, posterior predictive checks, and biological meaningfulness testing.
 \end{abstract} 
 
 \section{Introduction}
@@ -59,10 +59,12 @@
 
 Tumors are composed of different sub-populations of cells, and these sub-populations often exhibit shared patterns of gene expression. With contemporary sequencing machines, it is possible to obtain the expression levels of 10,000+ genes for 1000+ cells in a single experiment. 
 
-% In this project, we applied Bayesian methods for clustering and topic discovery to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{TS-DDP}. \\
+In this project, we applied Bayesian methods for clustering and topic discovery to discover meaningful cell clusters and gene modules from single-cell RNA-sequencing (scRNA-seq) datasets from tumors. We first intend to explore the use of a hierarchical topic model, Latent Dirichlet Allocation (LDA) \cite{LDA}, as well as two non-parametric topic models, Hierarchical Dirichlet Processes (HDP) \cite{HDP} and the Indian Buffet Process Compound Dirichlet Process (IBP-CDP) \cite{IBP} for analyzing
+scRNA-seq data. We will evaluate these models based on their ability to discover meaningful functional gene modules. Subsequently, we plan to explore the use of mixture models to cluster cells based on the output of the topic models, which we will evaluate based on their ability to differentiate cell types (e.g. immune, cancer, non-cancerous). Finally, we will train a combined clustering-topic model (e.g. MGCTM \cite{pengtao}) to see if it outperforms the individual models. We will compare the
+results of these methods with standard methods used in prior work, and evaluate these methods' robustness to noise. Time permitting, we will study extensions of these models appropriate for time-series scRNA-seq data \cite{tsdpp}. \\
 
 \section{Prior work}
-% Prior research has applied basic measures of statistical distance to cluster cell groups or gene modules based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}.  Good clustering of scRNA-seq data often has biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior work to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. We believe that Bayesian methods for clustering and topic modeling can be more illuminating than these previous methods, due to their consideration of higher-order relationships within the data. \\
+Prior research has applied basic measures of statistical distance to cluster cell groups or gene modules based on samples of single-cell RNA-sequencing (scRNA-seq) data taken from tumors \cite{nature}.  Good clustering of scRNA-seq data often has biologically meaningful results, and as such, a wide variety of correlation based methods have been used in prior work to derive meaning from scRNA-seq data \cite{coexpression, consensus, profiling}. We believe that Bayesian methods for clustering and topic modeling can be more illuminating than these previous methods, due to their consideration of higher-order relationships within the data. \\
 
 
 \section{Format of the Paper} 
@@ -118,47 +120,7 @@ support.
 % references without citing it in the main text, use \nocite
 % \nocite{langley00}
 
-% \bibliography{citations}
-% \bibliographystyle{sty/icml2013}
-
-\begin{thebibliography}{9}
-    \bibitem{nature} 
-        Spearman-based hierarchical clustering of scRNA-seq.
-        \url{http://www.nature.com/nsmb/journal/v24/n3/fig_tab/nsmb.3365_SF1.html}
-         
-    \bibitem{coexpression} 
-        Exploiting single-cell expression to characterize co-expression replicability.
-        \url{https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-0964-6}
-         
-    \bibitem{consensus} 
-        SC3 - consensus clustering of single-cell RNA-Seq data.
-        \url{http://biorxiv.org/content/early/2016/09/02/036558}
-
-    \bibitem{profiling} 
-        SINCERA: A Pipeline for Single-Cell RNA-Seq Profiling Analysis.
-        \url{http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1004575}
-
-    \bibitem{pengtao} 
-        Integrating Document Clustering and Topic Modeling.
-        \url{https://arxiv.org/pdf/1309.6874.pdf}
-
-    \bibitem{LDA}
-        Latent Dirichlet Allocation.
-        \url{http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf}
-
-    \bibitem{HDP}
-        Hierarchical Dirichlet Processes
-        \url{http://people.eecs.berkeley.edu/~jordan/papers/hdp.pdf}
-
-    \bibitem{IBP}
-        The IBP Compound Dirichlet Process and its Application to Focused Topic Modeling
-        \url{http://www.cs.columbia.edu/~blei/papers/WilliamsonWangHellerBlei2010.pdf}
-
-    \bibitem{TS-DDP}
-        A Time-Series DDP for Functional Proteomics Profiles
-        \url{https://www.ma.utexas.edu/users/pmueller/pap/NM12.pdf}
-
-
-\end{thebibliography}
+\bibliography{citations}
+\bibliographystyle{sty/icml2013}
 
 \end{document} 
