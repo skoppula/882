@@ -80,32 +80,44 @@ We switched to two open-source implementations: an online mean-field variational
 
 \nocite{online}
 
-We fixed portions of the sampler to compile properly and extended the sampler to run in across four cores. Details of our sampling procedure can be found in Appendix~\ref{ldaappendix}. We compared these two posterior estimation approaches using our entire dataset, using a 10\% held-out testing partition. We experimented using $k=5, 10, 25, 50$ topics. We did not require dataset pruning after these optimizations.
+We fixed portions of the sampler to compile properly and extended the sampler to run across four cores. Details of our sampling procedure can be found in Appendix~\ref{ldaappendix}. We compared these two posterior estimation approaches using our entire dataset, using a 10\% held-out testing partition. We experimented using $k=5, 10, 25, 50$ topics. We did not require dataset pruning after these optimizations.
 
 \subsection{Experiments} 
+In lieue of intrusion testing, we evaluated the interpretability of our topics (ranked lists of genes) using using hypergeometric tests \cite{hg}. In brief, this determines the probability that our sets of genes would be clustered together in accordance to with existing collections of genes catalogued by biologists in the gene module database \texttt{MSigDB} \cite{msigdb}.
+
+Figure~\ref{fig:pathways} in the Appendix shows gene module matches in \texttt{MSigDB} for which the $p$-value of the match is at least less than 0.3. Notice that models with more topics tended to have more matches with higher significance. The $p$-values in our tests do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
+
+It is validating to see that many of the similar modules, such as the \texttt{BRCA1} and \texttt{DOXORUBICIN}, are cancer related, given that our expression assay was from tumor cells.
+
+Extracting the parameters of each model, we calculated log-likelihood for on a held-out test set. This is shown in Figure \ref{fig:ll}. We found that for this dataset increasing the topic count increases log-likelihood, roughly logarithmically from 5 to 50. Further experiments will need to test at what point log-likelihood drops off (one way to optimize the number of topics).
+
+\begin{figure}
+\vskip 0.2in
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/ll}
+    \caption{Log-likelihood of the held-out testing set, across various numbers of topics.}
+    \label{fig:ll}
+\vskip -0.2in
+\end{figure}
+
+
+As an interesting aside, Figure \ref{fig:time} shows the time until inference completion (collected during our experiments). Gibbs appears to scale poorly with the parameter dimensionality, in contrast to online variational Bayes \footnote{It is important to note that comparing the magnitude of the time to complete inference is not particularly meaningful; as described in Appendix~\ref{ldaappendix}, we chose a reasonable guess for the number of iterations after which to stop estimation}. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figs/time}
+    \caption{Comparison of the running times of each of the posterior estimation methods across various numbers of topics.}
+    \label{fig:time}
+\end{figure}
+
+Posterior predictive checks to test the mutual information between the each cell and its words' topics is something that we did not have time, but would be interesting to examine. It's not clear that this independence assumption is true in the context of gene expression data, because of cross-talk and regulatory mechanisms between gene modules.
+
+
 - posterior predictive checks
 - no intrusion testing meaningful
 - hypergeometric tests
 - likelihood
 - performance metrics
-
-We did gene set enrichment analysis using the minimum hypergeometric test \cite{hg} to compare our topics, which are ranked lists of genes, with existing collections of genes catalogued in the comprehensive gene module database, \texttt{MSigDB} \cite{msigdb}. Figure \ref{fig:pathways} in the Appendix shows topic-to-\texttt{MSigDB} module matches for which the $p$-value of the match is at least less than 0.3. Models with more topics tended to have more matches with higher significance. These results suggest that we need to train the model with more topics. We note that the $p$-values do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
-
-3. More details about biological significance: Good question about \# of topics affecting the results for the hypergeometric test for biological relevance/correlation with existing biologically annotated. This is something I'm not too sure about, and why we experience the results we do. That said, \# topics is something that we were experimented with, but soon realized we didn't consider a broad enough range, after seeing the results from our non-parametric model afterward. More
-investigation and thought will need to go into this for the final report.
-
-Figure \ref{fig:time} shows the time to complete each estimation method. As expected, Gibbs scales poorly with the parameter dimensionality and is strictly worse than online variational Bayes across all studied topic counts. We also calculated perplexity and log-likelihood for the OVB parameters, and very surprisingly, we found that log-likelihood decreased as number of topics increased on a held-out test set (Figure \ref{fig:ll}). We are currently trying to understand whether this is because of programming error.
-
-
-\begin{figure}[h]
-\vskip 0.2in
-\begin{center}
-\centerline{\includegraphics[width=\columnwidth]{figs/examplegraph}}
-\caption{This is a demo figure.}
-\label{alabel}
-\end{center}
-\vskip -0.2in
-\end{figure} 
 
 
 \section{Dirichlet Mixture Model} 
@@ -166,12 +178,19 @@ Figure \ref{fig:time} shows the time to complete each estimation method. As expe
 
 \section{Appendix} 
 
-\subsection{Team's Breakdown of Work}
-The implementation(s) and experiments involving LDA, Dirichlet Mixture, and Dynamic Time Model was completed by Skanda (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). Karren completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. We believe the authors contributed equally in this work.
+\subsection{Breakdown of Work}
+The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by Skanda (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). Karren completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. We believe the authors contributed equally in this work.
 
 \subsection{Latent Dirichlet Allocation}
 \label{ldaappendix}
 For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). We didn't extensively explore varying these values, but trying out significantly more iterations (700) didn't seem to change the topic's word distributions significantly. There was one sampling chain on each of four cores.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\textwidth]{figs/pathways}
+    \caption{Matches between the gene collections found in LDA topics and published gene sets in \texttt{MSigDB}. Cluster size refers to the number of topics in the model}
+    \label{fig:pathways}
+\end{figure*}
 
 \subsection{LDA vs. IBP-DP}
 One drawback to the HDP is that there tends to be a correlation between how frequently a topic appears across all documents and how prevalent this topic is within documents that it appears in. Williamson et al. \cite{IBP} proposed the 'focused topic model' to overcome this drawback. In their model, each topic $k = 1,2,...$ has a relative prevalence $\phi_k \sim Gamma(\gamma, 1)$ and a population frequency $\pi_k = \prod^k_{j=1} \mu_k$, where each $\mu_k \sim Beta(\alpha, 1) $. For each document $m$, whether topic $k$ appears is sampled as $b_{mk} \sim Bernoulli(\pi_k)$, and the topic proportions are sampled as $\theta_m \sim Dirichlet(b_m \cdot \phi)$. \\
@@ -179,27 +198,6 @@ One drawback to the HDP is that there tends to be a correlation between how freq
 Since the code from the original IBP-DP paper was not available, we implemented an inference algorithm using collapsed Gibbs sampling \cite{IBP}. Due to the non-conjugacy of the model, sampling each latent variable from its full conditional required using another sampling method. To sample the topics parameters $\pi$ and $\phi$, we used slice sampling based on the semi-ordered stick-breaking representation of the model \cite{IBP2}.\\
 
 We tested our code on a subset of the Reuters-21578 dataset, using several different values of the concentration hyper-parameter $\alpha$, which influences the number of clusters. Although higher values of $\alpha$ yielded better log-likelihood values, we found that it resulted in a large number of very small topics, which are not very useful (Figure \ref{fig:ibp_words_in_topic}). Qualitatively, we did not find the topics from IBP-DP (Figure \ref{fig:ibptopics}) to be more coherent than topics than LDA (Figure \ref{fig:ldatopics}). The most prevalent topics from the IBP-DP each corresponded to similar topics from LDA; less prevalent topics tended to consist of a few unrelated words. These results discouraged us from optimizing the code to train this model on our scRNA-seq dataset, as we do not think it would yield more coherent gene modules than LDA. We emphasize that these results are not completely unexpected, as the authors of the IBP-DP paper did not show any topics from their model, nor did they assess the quality of their model with metrics other than perplexity.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/time}
-    \caption{Comparison of the running times of each of the posterior estimation methods across various numbers of topics.}
-    \label{fig:time}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/ll}
-    \caption{Log-likelihood of the held-out testing set, across various numbers of topics.}
-    \label{fig:ll}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{figs/pathways}
-    \caption{Matches between the gene collections found in LDA topics and published gene sets in \texttt{MSigDB}. Cluster size refers to the number of topics in the model}
-    \label{fig:pathways}
-\end{figure}
 
 \begin{figure}
     \centering
