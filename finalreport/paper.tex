@@ -54,29 +54,33 @@ Tumors cell lines are composed of different sub-populations of cells which often
 In brief, we explored the use of three Bayesian clustering methods (a vanilla mixture, integrated topic-mixture, and non-parametric models) to address the first question, and two topic models (vanilla and a dynamic-topic LDA) to address the second. 
 
 \subsection{Description of Data}
-Using a contemporary gene sequencing machine, we obtained samples of single-cell RNA-sequencing data (scRNA-seq) taken from tumors in mice. Our data consisted of the expression values of 22,712 genes for each of 4645 cells. In total, the dataset amounted to 0.86 GB, presenting significant computational challenges when attempting posterior estimation. Apart from a few computational tricks (online inference, multi-core parallelization), for most methods, we pruned non-informative genes from the dataset, ranking based on the deviation in value across cells \footnote{We recognize that this can bias towards noisy genes. We favor this method because it is simple and easy to implement, and a practice used in literature \cite{pruning}}. The Seurat biological toolkit in R was also used for the purpose of low-variance feature selection \cite{seurat}. We eschewed dimensionality reduction techniques such as PCA because of loss of its direct feature interpretability. Biologists have hand-labeled every cell in our dataset using existing tool; there are a total of 9 cell categories. The complete dataset, as well our preprocessed and pruned versions, are available at \cite{dataset}.
+Using a contemporary gene sequencing machine, we obtained samples of single-cell RNA-sequencing data (scRNA-seq) taken from tumors in mice. Our data consisted of the expression values of 22,712 genes for each of 4645 cells. In total, the dataset amounted to 0.86 GB, presenting significant computational challenges when attempting posterior estimation. Apart from a few computational tricks (online inference, multi-core parallelization), for most methods, we pruned non-informative genes from the dataset, ranking based on the deviation in value across cells \footnote{We recognize that this can bias towards noisy genes. We favor this method because it is simple and easy to implement, and a practice used in literature \cite{pruning}}. The Seurat biological toolkit in R was also used for the purpose of low-variance feature selection \cite{seurat}. We eschewed dimensionality reduction techniques such as PCA because of loss of its direct feature interpretability. Prior researchers have labeled the cells in our dataset; there are a total of 9 cell categories. The complete dataset, as well our preprocessed and pruned versions, are openly available \cite{dataset}.
 
 \subsection{Prior work}
-Prior research has explored the use of various computational techniques to analyze gene expression data. Most commonly, Spearman and Pearson correlation metrics are frequently used infer sets of genes that cluster together \cite{profiling, nature}. Other techniques, including PCA followed by linear regression, has been used for expression-based cell clustering \cite{transcriptomics}. Yu et al. propose a unsupervised classifier ensemble as another approach to cell clustering \cite{consensus}. 
+Prior research has explored the use of various computational techniques to analyze gene expression data. Most commonly, Spearman and Pearson correlation metrics are frequently used infer sets of genes that cluster together \cite{profiling, nature}. Other techniques, including PCA followed by linear regression, has been used for expression-based cell clustering \cite{transcriptomics}. Yu et al. propose an unsupervised classifier ensemble as another approach to cell clustering \cite{consensus}. 
 
-More Bayesian approaches have also been tried in prior work from the Pe'er lab. \cite{bayesge2} uses a Heirarchical Dirichlet Mixture Model to learn cell clusterings. \cite{bayesge1} builds on this to jointly learn optimal normalization pre-processing of the data. Bayesian networks have also been used in an attempt to learn gene dependencies from expression data \cite{bayesge3}.
+More Bayesian approaches have also been tried in prior work from the Pe'er lab. \cite{bayesge2} uses a Heirarchical Dirichlet Mixture Model to learn cell clusterings. \cite{bayesge1} builds on this to jointly learn optimal normalization pre-processing of the data. Bayesian networks have also been used in an attempt to learn gene dependencies from expression data \cite{bayesge3}. Our work uses different models to explore gene expression data, but where appropriate (e.g. in mixture models in Section~\ref{mmsec}), we compare results.
 
 \subsection{Structure of Report}
-    We first discuss our experiments using Bayesian topic models to discover related sets of genes in a 'topic': LDA in Section~\ref{ldasec} and Dynamic Time Models in Section~\ref{dtmsec}. We discuss our experiments in clustering: Dirichlet Mixtures in Section~\ref{mmsec}, Integrated Topic-Clustering in Section~\ref{intsec}, and non-parametric models in Section~\ref{nonparametricsec}. Finally, we conclude our paper with our obversations from across all studies. 
+We first discuss our experiments using Bayesian topic models to discover related sets of genes in a 'topic': LDA in Section~\ref{ldasec} and Dynamic Time Models in Section~\ref{dtmsec}. Then, we discuss our experiments in clustering: Dirichlet Mixtures in Section~\ref{mmsec}, Integrated Topic-Clustering in Section~\ref{intsec}, and non-parametric models in Section~\ref{nonparametricsec}. We conclude our paper with our observations from across all our studies. 
+
+For the purpose of reproducibility, all code can be found at \url{https://github.com/skoppula/882}.
 
 \section{Latent Dirichlet Allocation} 
 \label{ldasec}
 \subsection{Model Description} 
-In the generative process for LDA, the topic assigned to a word in a document is a drawn from the document's topic distribution. The identity of the word is drawn from topic's word distribution. Assuming the reader is familiar with LDA, we relegate further details and formalization of the model to \cite{LDA}.
+In the generative process for LDA, the topic assigned to each word is a drawn from the document's topic distribution. The identity of the word is drawn from topic's word distribution. Assuming the reader is familiar with LDA, we relegate further details and formalization of the model to \cite{LDA}.
 
 In the context of analyzing gene expression data, we are interested in discovering 'topics' that comprise of a set of top-$N$ genes within the topic distribution that are biologically related. For example, together the genes may direct a specific chemical function in a cell. Biologists denote such sets of genes as 'gene modules' which can be cross-referenced with existing gene module databases.
 
 \subsection{Implementation} 
-We explored two implementations of posterior inference for LDA on large datasets: one using online mean-field variational bayes for posterior estimate \cite{ovb, online}, and a broken \texttt{C++} Gibbs sampler for LDA that we modified to work \cite{plda}. We were able to get this latter sampler running parallel across multiple cores, with a burn-in of 100 iterations. We compare these two posterior estimation approaches using our entire dataset, with a 10\% held-out testing partition. We experimented with
-$k=5, 10, 25, 50$ topics. \\
+A first attempt using the built-in Python \texttt{lda} package resulting in early memory overflows during what we suspect was pre-allocation of per-document variables. The source code was not available, so we had few clues.
 
-More details about the Gibbs sampler: We had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). We didn't extensively explore varying these values, but trying out significantly more iterations (700) didn't seem to change the topic's word distributions significantly. We could explore this in more detail for the final report. There was one sampling chain per core, with four cores. Not sure exactly what you had in mind by reporting
-'performance details', other than time for estimation/core, but maybe a somewhat more fair comparison, like test perplexity/instructions executed during posterior estimation?
+We switched to two open-source implementations: an online mean-field variational Bayes for posterior estimation \cite{ovb}, and a broken \texttt{C++} Gibbs sampler for LDA \cite{plda}. 
+
+\nocite{online}
+
+We fixed portions of the sampler to compile properly and extended the sampler to run in across four cores. Details of our sampling procedure can be found in Appendix~\ref{ldaappendix}. We compared these two posterior estimation approaches using our entire dataset, using a 10\% held-out testing partition. We experimented using $k=5, 10, 25, 50$ topics. We did not require dataset pruning after these optimizations.
 
 \subsection{Experiments} 
 - posterior predictive checks
@@ -127,6 +131,7 @@ Figure \ref{fig:time} shows the time to complete each estimation method. As expe
     \end{algorithm}
 \subsection{Implementation} 
 \subsection{Experiments}  
+- comparison with pe'er paper
 
 
 \section{Dynamic Time Model} 
@@ -163,6 +168,10 @@ Figure \ref{fig:time} shows the time to complete each estimation method. As expe
 
 \subsection{Team's Breakdown of Work}
 The implementation(s) and experiments involving LDA, Dirichlet Mixture, and Dynamic Time Model was completed by Skanda (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). Karren completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. We believe the authors contributed equally in this work.
+
+\subsection{Latent Dirichlet Allocation}
+\label{ldaappendix}
+For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). We didn't extensively explore varying these values, but trying out significantly more iterations (700) didn't seem to change the topic's word distributions significantly. There was one sampling chain on each of four cores.
 
 \subsection{LDA vs. IBP-DP}
 One drawback to the HDP is that there tends to be a correlation between how frequently a topic appears across all documents and how prevalent this topic is within documents that it appears in. Williamson et al. \cite{IBP} proposed the 'focused topic model' to overcome this drawback. In their model, each topic $k = 1,2,...$ has a relative prevalence $\phi_k \sim Gamma(\gamma, 1)$ and a population frequency $\pi_k = \prod^k_{j=1} \mu_k$, where each $\mu_k \sim Beta(\alpha, 1) $. For each document $m$, whether topic $k$ appears is sampled as $b_{mk} \sim Bernoulli(\pi_k)$, and the topic proportions are sampled as $\theta_m \sim Dirichlet(b_m \cdot \phi)$. \\
