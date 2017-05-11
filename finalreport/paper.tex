@@ -168,11 +168,28 @@ With more time, we would ideally repeat the experiments to obtain confidence int
 \section{Mixture Model} 
 \label{mmsec}
 \subsection{Model Description} 
-The second question we wanted to address
-- comparison with pe'er paper
+The second question -- whether we could learn cell groupings -- we tackled using a canonical Gaussian mixture model. In brief, the model assigns every data point to a cluster; every cluster is Gaussian whose parameters are learned through posterior inference. A plate diagram can be found at \cite{mmplate}. This model is different from the previously mentioned Pe'er papers which use Dirichlet Processes Mixtures to study expression data. By plotting 
+histograms of raw gene expression values, we've found that for many genes the distribution is mostly normal across our data points. This hints that the generative process in a Gaussian mixture model is plausible.
+
 \subsection{Implementation} 
+We implemented the mixture model in \textbf{Edward}, the probabalistic programming framework on top of Tensorflow. This allowed us to experiment with different samplers and variational inference approximations. The results we show below are for our runs using a Gibbs sampler, with a fixed burn-in of number of samples (200), a fixed number of sampling iterations (500).
+
 \subsection{Experiments}  
-- 500 sampling iterations per run
+% As a pre-processing step, we normalized every gene to zero-mean, unit variance across the data points. To speed up inference, we cut the dimensionality of the data to 10 using PCA before feeding it into our mixture model.
+
+Figure~\ref{fig:mmplot} shows an estimated cluster assignment for one-hundred sampled data point. We see that while our learned assignments do capture some of the clustering, there is significant bias toward one group (the burgundy cluster).
+
+Following this trend, we examined the set of unique clusters assigned in the posterior. The results are shown in Table~\ref{mmtable}. Interestingly, the model consistently uses less clusters than is allocated in the model. We are unsure why this is the case.
+
+Finally, we examine the log-likelihood of a held-out test set three different runs of posterior estimation with our sampler. This is shown in Figure~\ref{fig:llmm}. The runs are consistent with each other, and the likelihood is largely invariant across the five different cluster counts we tried, $k=\{10,25,50,75,50\}$. There are an estimated 9 true cell types in the original dataset, which could explain this result.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/llmm}
+    \caption{Log-likelihood of held-out test set, on three seperate runs of Gibbs sampling procedure, described above}
+    \label{fig:llmm}
+\end{figure}
+
 \begin{table}[h]
     \centering
     \label{mmtable}
@@ -185,8 +202,18 @@ The second question we wanted to address
         75                 & 18                                                        \\
         100                & 20                                                        \\ \bottomrule
     \end{tabular}
-    \caption{The number of clusters defined in the model appears to be more than the actual number of unique clusters assigned to the data points after posterior estimation. The estimated true number of categories is slightly above 10.}
+    \caption{The number of clusters defined in the model appears to be more than the actual number of unique clusters assigned to the data points after posterior estimation. The estimated true number of categories is 9.}
 \end{table}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figs/totalclusters}
+    \caption{2D-projection of sampled gene expression data points, colored by predicted cluster (left) and by true cluster assignments (right). Axis are the two learned PCA dimensions.}
+    \label{fig:mmplot}
+\vskip -0.2in
+\end{figure*}
+
 
 \section{Integrated Topic-Clustering Model} 
 \label{intsec}
@@ -214,6 +241,7 @@ The implementation(s) and experiments involving LDA, Gaussian Mixtures, and Dyna
 \bibliography{citations}
 \bibliographystyle{sty/icml2013}
 
+\newpage
 
 \section{Appendix} 
 
@@ -258,18 +286,5 @@ Here, $\pi(x_i)$ is the softmax function $\frac{exp(x_i)}{\sum_k exp(x_k)}$ \cit
     \caption{Matches between the gene collections found using a dynamic topic model and published gene sets in \texttt{MSigDB}. $k$ refers to the number of topics in the model. $t$ refers to the time slice in the model.}
     \label{fig:pathwaysdtm}
 \end{figure*}
-
-\subsection{Gaussian Mixture Model}
-
-For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). For time reasons, we didn't extensively explore varying these values. Figure~\ref{fig:llmm} describes the log-likelihood evaluation of the estimated posteriors.
-
-\begin{figure*}
-    \centering
-    \includegraphics[width=1\textwidth]{figs/llmm}
-    \caption{Log-likelihood of held-out test set, on three seperate runs of Gibbs sampling procedure, described above}
-    \label{fig:llmm}
-\end{figure*}
-
-\label{mmappendix}
 
 \end{document} 
