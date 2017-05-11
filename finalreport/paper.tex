@@ -68,7 +68,7 @@ Prior research has explored the use of various computational techniques to analy
 More Bayesian approaches have also been tried in prior work from the Pe'er lab. \cite{bayesge2} uses a Heirarchical Dirichlet Mixture Model to learn cell clusterings. \cite{bayesge1} builds on this to jointly learn optimal normalization pre-processing of the data. Bayesian networks have also been used in an attempt to learn gene dependencies from expression data \cite{bayesge3}. Our work uses different models to explore gene expression data, but where appropriate (e.g. LDA vs. non-parametric models), we compare results.
 
 \subsection{Structure of Report}
-We first discuss our experiments using Bayesian topic models to discover topics (i.e. related sets of genes) in scRNA-seq data: LDA in Section~\ref{ldasec}, non-parametric topic models in Section ~\ref{nonparametricsec} and Dynamic Time Models in Section~\ref{dtmsec}. Then, we discuss our experiments in clustering: Finite Mixtures in Section~\ref{mmsec}, and Integrated Topic-Clustering in Section~\ref{intsec}. We conclude our paper with our observations from across all our studies.
+We first discuss our experiments using Bayesian topic models to discover topics in scRNA-seq data: LDA in Section~\ref{ldasec}, non-parametric topic models in Section ~\ref{nonparametricsec} and Dynamic Time Models in Section~\ref{dtmsec}. Then, we discuss our experiments in clustering: Finite Mixtures in Section~\ref{mmsec}, and Integrated Topic-Clustering in Section~\ref{intsec}. We conclude our paper with our observations from across all our studies.
 
 For the purpose of reproducibility, all code can be found at \url{https://github.com/skoppula/882}.
 
@@ -321,7 +321,7 @@ Finally, we wanted to create a unified framework for cell clustering and topic m
 % \nocite{langley00}
 
 \section{Author Contributions}
-The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{dtmsec}, and Section~\ref{mmsec}). KY completed the implementations and experiments involved non-parametric topic models, the clustering topic model, and the gene set enrichment test implementation (Section~\ref{nonparametricsec}, Section~\ref{intsec}, and Section~\ref{enrichment_score}). The authors contributed equally in this work.
+The implementations and experiments involving LDA, Gaussian Mixtures, and the Dynamic Topic Model was completed by SK (Section~\ref{ldasec}, Section~\ref{dtmsec}, and Section~\ref{mmsec}). KY completed the implementations and experiments involved non-parametric topic models, the clustering topic model, and the gene set enrichment test implementation (Section~\ref{nonparametricsec}, Section~\ref{intsec}, and Section~\ref{enrichment_score}). The authors contributed equally in this work.
 
 \bibliography{citations}
 \bibliographystyle{sty/icml2013}
@@ -401,6 +401,13 @@ Here is a description of the generative process for our dynamic topic model:
     \end{enumerate}
 \end{enumerate}
 Here, $\pi(x_i)$ is the softmax function $\frac{exp(x_i)}{\sum_k exp(x_k)}$ \cite{dtm}.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\textwidth]{figs/pathwaysdtm}
+    \caption{Matches between the gene collections found in DTM topics and published gene sets in \texttt{MSigDB}. $k$ refers to the number of topics in the model, $t$ refers to one of three time slices.}
+    \label{fig:pathwaysdtm}
+\end{figure*}
 
 \begin{figure*}
     \centering
