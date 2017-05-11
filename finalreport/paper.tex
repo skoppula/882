@@ -138,24 +138,31 @@ Unfortunately, due to the non-conjugacy of the Gaussian/Multinomial in our logis
 
 Re-implementing the variational approximation, while educational and interesting, would be a project of itself, so our first attempt in employing dynamic time models to our gene expression data re-used the Kalman Filter-based variational inference used by the original authors, published recently by the Blei Lab \cite{dtmbleigit}. The results we show in the subsequent section are using a wrapper we've implemented around the group's inference code.
 
-The authors stumbled upon a recent arXiv pre-print that proposed a set of sampler update rules to create a correct DTM Gibbs sampler \cite{sdtm}. Using the probabalistic programming framework \texttt{Edward}, and modifying the in-built sampler to follow these updates, we were able to obtain a working Gibbs-sampler for sample time-sliced data for a dynamic topic model defined in Edward \cite{edward}. While we don't have time to conduct benchmarks or re-do results right now, after verifying that results are consistent, the authors hope to submit a merge for this Edward sketch into the mainstream Edward examples library this coming summer.
+The authors stumbled upon a recent arXiv pre-print that proposed a set of sampler update rules to create a correct DTM Gibbs sampler \cite{sdtm}. Using the probabalistic programming framework \texttt{Edward}, and modifying the in-built sampler to follow these updates, we were able to obtain a working Gibbs-sampler for sample time-sliced data for a dynamic topic model defined in Edward \cite{edward}. While we don't have time to conduct benchmarks or re-run our results right now, after verifying that results are consistent, the authors hope to submit a merge for this Edward sketch into the mainstream Edward examples library this coming summer.
 
 \subsection{Experiments} 
-We subdivided our data into three seperate time slices, and pruned each slice, retaining the top 30\% of high-variance genes. We experimented using $k=15$, $30$, and $50$ topics.
+We subdivided our data into three seperate time slices, and pruned each slice, retaining the top 20\% of high-variance genes. We experimented using $k=15$, $30$, and $50$ topics.
 
 Similar to our analysis in Section~\ref{ldasec}, we used the hypergeometric test to evaluate interpretability. 
 
-Figure~\ref{fig:pathwaysdtm} in the Appendix shows gene module matches for which the $p$-value of the match is at least less than 0.3, across the three time slices for each of the three topic count sizes.
+Figure~\ref{fig:pathwaysdtm} in the Appendix shows gene module matches for which the $p$-value is less than 0.3, across the three time slices and the three topic count sizes. Interestingly, we notice a very different set of matched gene modules, with exception of the \texttt{KLF1} module\footnote{This could very well be a result of our dataset pruning, which we did to keep inference runtimes manageable}. Like before, we notice that some of the identified topics are relevant to tumor cells:
+\texttt{ST\_TUMOR\_NECROSIS\_FACTOR\_PATHWAY} and \texttt{WEST\_ADRENOCORTICAL\_TUMOR\_MARKERS\_UP} to name the two most prominent topics.
 
-Notice that models with more topics tended to have more matches with higher significance. The $p$-values in our tests do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
+We do not see that much variation across time-slices, demonstrating that our time-slice partitions are largely uniform. For example, for model $k=50$, we see that topic 20 consistently matches with MSigDB module \texttt{PILON\_KLF1\_TARGETS\_UP}, suggesting that its gene composition is not varying.
 
-It is validating to see that many of the similar modules, such as the \texttt{BRCA1} and \texttt{DOXORUBICIN}, are cancer related, given that our expression assay was from tumor cells.
+Models with more topics tended to have more matches with higher significance. But again, the $p$-values in our tests do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
 
-- posterior predictive checks
-- no intrusion testing meaningful
-- hypergeometric tests
-- likelihood
-- performance metrics
+After extracting the mode of learned parameters, we evaluated the log-likelihood of our held-out test set, also partitioned by time. This is shown in Figure \ref{fig:lldtm}. We find a leveling of log-likelihood after $k=30$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/lldtm}
+    \caption{Log-likelihood of the held-out testing set across our time slices for varying numbers of topics.}
+    \label{fig:lldtm}
+\vskip -0.2in
+\end{figure}
+
+With more time, we would ideally repeat the experiments to obtain confidence intervals on these experiments, and examine the gene-module/cell/time-slice mutual information.
 
 \section{Dirichlet Mixture Model} 
 \label{mmsec}
@@ -194,7 +201,7 @@ It is validating to see that many of the similar modules, such as the \texttt{BR
 \section{Appendix} 
 
 \subsection{Breakdown of Work}
-The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). KY completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. The authors contributed equally in this work.
+The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). KY completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}). The authors contributed equally in this work.
 
 \subsection{Latent Dirichlet Allocation}
 \label{ldaappendix}
@@ -225,53 +232,11 @@ Here is a description of the generative process for our dynamic topic model:
 \end{enumerate}
 Here, $\pi(x_i)$ is the softmax function $\frac{exp(x_i)}{\sum_k exp(x_k)}$ \cite{dtm}.
 
-\subsection{LDA vs. IBP-DP}
-One drawback to the HDP is that there tends to be a correlation between how frequently a topic appears across all documents and how prevalent this topic is within documents that it appears in. Williamson et al. \cite{IBP} proposed the 'focused topic model' to overcome this drawback. In their model, each topic $k = 1,2,...$ has a relative prevalence $\phi_k \sim Gamma(\gamma, 1)$ and a population frequency $\pi_k = \prod^k_{j=1} \mu_k$, where each $\mu_k \sim Beta(\alpha, 1) $. For each document $m$, whether topic $k$ appears is sampled as $b_{mk} \sim Bernoulli(\pi_k)$, and the topic proportions are sampled as $\theta_m \sim Dirichlet(b_m \cdot \phi)$. \\
-
-Since the code from the original IBP-DP paper was not available, we implemented an inference algorithm using collapsed Gibbs sampling \cite{IBP}. Due to the non-conjugacy of the model, sampling each latent variable from its full conditional required using another sampling method. To sample the topics parameters $\pi$ and $\phi$, we used slice sampling based on the semi-ordered stick-breaking representation of the model \cite{IBP2}.\\
-
-We tested our code on a subset of the Reuters-21578 dataset, using several different values of the concentration hyper-parameter $\alpha$, which influences the number of clusters. Although higher values of $\alpha$ yielded better log-likelihood values, we found that it resulted in a large number of very small topics, which are not very useful (Figure \ref{fig:ibp_words_in_topic}). Qualitatively, we did not find the topics from IBP-DP (Figure \ref{fig:ibptopics}) to be more coherent than topics than LDA (Figure \ref{fig:ldatopics}). The most prevalent topics from the IBP-DP each corresponded to similar topics from LDA; less prevalent topics tended to consist of a few unrelated words. These results discouraged us from optimizing the code to train this model on our scRNA-seq dataset, as we do not think it would yield more coherent gene modules than LDA. We emphasize that these results are not completely unexpected, as the authors of the IBP-DP paper did not show any topics from their model, nor did they assess the quality of their model with metrics other than perplexity.
-
-\begin{figure}
+\begin{figure*}
     \centering
-    \includegraphics[width=0.5\textwidth]{figs/hdp-perplexity}
-    \caption{Comparison of log-likelihood of the held-out testing set, under various LDA models and the HDP model.}
-    \label{fig:hdp-perplexity}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/hdp-enrichment}
-    \caption{Comparison of distributions of p-values from gene set enrichment analysis between LDA models and the HDP model.}
-    \label{fig:hdp-enrichment}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figs/ibp_words_in_topic}
-    \caption{Beeswarm plot of number of words per topic, for 3 different IBP-DP models with different concentration parameters. Each point represents one topic from its model}
-    \label{fig:ibp_words_in_topic}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{figs/ibptopics}
-    \caption{Topics from IBP-DP model trained on subset of Reuters dataset.}
-    \label{fig:ibptopics}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{figs/ldatopics}
-    \caption{Topics from LDA model with 15 topics trained on subset of Reuters dataset.}
-    \label{fig:ldatopics}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.3\textwidth]{figs/mixture}
-    \caption{Finite \texttt{K}-sized mixture model currently implemented. $\theta$ is the parameter for every cluster component, represented from a categorical draw of over all genes. $z_i$ is the cluster assignment, and $\phi$ is the distribution of clusters. As usual, $\alpha, \beta$ are hyper-parameters.}
-    \label{fig:plate}
-\end{figure}
+    \includegraphics[width=1\textwidth]{figs/pathwaysdtm}
+    \caption{Matches between the gene collections found using a dynamic topic model and published gene sets in \texttt{MSigDB}. $k$ refers to the number of topics in the model. $t$ refers to the time slice in the model.}
+    \label{fig:pathwaysdtm}
+\end{figure*}
 
 \end{document} 
