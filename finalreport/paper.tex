@@ -3,6 +3,7 @@
 % For figures
 \usepackage{graphicx} % more modern
 \usepackage{subfigure} 
+\usepackage{amsfonts}
 
 % For citations
 % \usepackage{natbib}
@@ -83,35 +84,72 @@ We switched to two open-source implementations: an online mean-field variational
 We fixed portions of the sampler to compile properly and extended the sampler to run across four cores. Details of our sampling procedure can be found in Appendix~\ref{ldaappendix}. We compared these two posterior estimation approaches using our entire dataset, using a 10\% held-out testing partition. We experimented using $k=5, 10, 25, 50$ topics. We did not require dataset pruning after these optimizations.
 
 \subsection{Experiments} 
-In lieue of intrusion testing, we evaluated the interpretability of our topics (ranked lists of genes) using using hypergeometric tests \cite{hg}. In brief, this determines the probability that our sets of genes would be clustered together in accordance to with existing collections of genes catalogued by biologists in the gene module database \texttt{MSigDB} \cite{msigdb}.
+In lieu of intrusion testing, we evaluated the interpretability of our topics (ranked lists of genes) using using hypergeometric tests \cite{hg}. In brief, this determines the probability that our sets of genes would be clustered together in accordance to with existing collections of genes catalogued by biologists in the gene module database \texttt{MSigDB} \cite{msigdb}.
 
 Figure~\ref{fig:pathways} in the Appendix shows gene module matches in \texttt{MSigDB} for which the $p$-value of the match is at least less than 0.3. Notice that models with more topics tended to have more matches with higher significance. The $p$-values in our tests do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
 
 It is validating to see that many of the similar modules, such as the \texttt{BRCA1} and \texttt{DOXORUBICIN}, are cancer related, given that our expression assay was from tumor cells.
 
-Extracting the parameters of each model, we calculated log-likelihood for on a held-out test set. This is shown in Figure \ref{fig:ll}. We found that for this dataset increasing the topic count increases log-likelihood, roughly logarithmically from 5 to 50. Further experiments will need to test at what point log-likelihood drops off (one way to optimize the number of topics).
+Extracting the parameters of each model, we calculated log-likelihood on our held-out test set. This is shown in Figure \ref{fig:ll}. We found that for this dataset increasing the topic count increases log-likelihood, roughly linear from 5 to 50. Further experiments will need to test at what point log-likelihood drops off; this is one way to optimize the number of topics.
 
 \begin{figure}
-\vskip 0.2in
     \centering
-    \includegraphics[width=0.5\textwidth]{figs/ll}
-    \caption{Log-likelihood of the held-out testing set, across various numbers of topics.}
+    \includegraphics[width=0.4\textwidth]{figs/ll}
+    \caption{Log-likelihood of the held-out testing set across numbers of topics. Higher topic sizes are explored in later models.}
     \label{fig:ll}
 \vskip -0.2in
 \end{figure}
 
 
-As an interesting aside, Figure \ref{fig:time} shows the time until inference completion (collected during our experiments). Gibbs appears to scale poorly with the parameter dimensionality, in contrast to online variational Bayes \footnote{It is important to note that comparing the magnitude of the time to complete inference is not particularly meaningful; as described in Appendix~\ref{ldaappendix}, we chose a reasonable guess for the number of iterations after which to stop estimation}. 
+As an interesting aside, Figure \ref{fig:time} shows the time until inference completion (collected during our experiments). Gibbs appears to scale poorly with the parameter dimensionality, in contrast to online variational Bayes \footnote{It is important to note that comparing the magnitude of the time to complete inference in Figure~\ref{fig:time} is not particularly meaningful; as described in Appendix~\ref{ldaappendix}, we chose a reasonable guess for the number of iterations
+and optimization threshold after which to stop estimation}. 
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{figs/time}
-    \caption{Comparison of the running times of each of the posterior estimation methods across various numbers of topics.}
+    \includegraphics[width=0.4\textwidth]{figs/time}
+    \caption{Comparison of the running times of each of the posterior estimation methods across various numbers of topics. Termination conditions across all runs were constant, and described in Appendix~\ref{ldaappendix}}
     \label{fig:time}
 \end{figure}
 
 Posterior predictive checks to test the mutual information between the each cell and its words' topics is something that we did not have time, but would be interesting to examine. It's not clear that this independence assumption is true in the context of gene expression data, because of cross-talk and regulatory mechanisms between gene modules.
 
+\section{Dynamic Topic Model} 
+\label{dtmsec}
+\subsection{Model Description} 
+As tumor cells proliferate, they undergo a process called \textit{differentiation}. The set of cells types during tumor emergence may differ from the set of types expressed days later. Correspondingly, patterns of gene expression may also change over time. The set of gene modules expressed in the cells, or the composition of each gene module (topic), may also change.
+
+To capture these evolving topics, we look to dynamic topic models \cite{dtm}. In brief, dynamic topic models establish a conditional distribution over the hyperparameters $\alpha$ and $\beta$, that govern the document's topic distribution and topic's word distribution, respectively. The distribution over each hyperparameter is conditioned on the prior in the previous time step, allowing changes to topic composition and assignment. This can be seen graphically in the plate
+model in Figure~\ref{fig:dtmplate}. For convenience, we provide a concise description of the generative process for the implemented heirarchical model for a time slice $t$ in Appendix~\ref{dtmappendix}.
+
+\begin{figure}[h]
+    \vspace{-0.1in}
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/dtmplate}
+    \caption{Plate diagram for the Dynamic Topic Model. Reproduced from \cite{dtm}.}
+    \label{fig:dtmplate}
+    \vspace{-0.1in}
+\end{figure}
+
+Note that in contrast to LDA, dynamic topic models use a logistic-normal to express proportion uncertainty. This is stated more explicitly in Appendix~\ref{dtmappendix}.
+
+\subsection{Implementation} 
+
+Unfortunately, due to the non-conjugacy of the Gaussian/Multinomial in our logistic-normal setup, integrating out parameters for any sort of Gibbs sampling becomes hard. Instead, the original DTM paper uses a variational approximation based on a Kalman filter, that preserves time dependencies, unlike a mean-field approximation.
+
+Re-implementing the variational approximation, while educational and interesting, would be a project of itself, so our first attempt in employing dynamic time models to our gene expression data re-used the Kalman Filter-based variational inference used by the original authors, published recently by the Blei Lab \cite{dtmbleigit}. The results we show in the subsequent section are using a wrapper we've implemented around the group's inference code.
+
+The authors stumbled upon a recent arXiv pre-print that proposed a set of sampler update rules to create a correct DTM Gibbs sampler \cite{sdtm}. Using the probabalistic programming framework \texttt{Edward}, and modifying the in-built sampler to follow these updates, we were able to obtain a working Gibbs-sampler for sample time-sliced data for a dynamic topic model defined in Edward \cite{edward}. While we don't have time to conduct benchmarks or re-do results right now, after verifying that results are consistent, the authors hope to submit a merge for this Edward sketch into the mainstream Edward examples library this coming summer.
+
+\subsection{Experiments} 
+We subdivided our data into three seperate time slices, and pruned each slice, retaining the top 30\% of high-variance genes. We experimented using $k=15$, $30$, and $50$ topics.
+
+Similar to our analysis in Section~\ref{ldasec}, we used the hypergeometric test to evaluate interpretability. 
+
+Figure~\ref{fig:pathwaysdtm} in the Appendix shows gene module matches for which the $p$-value of the match is at least less than 0.3, across the three time slices for each of the three topic count sizes.
+
+Notice that models with more topics tended to have more matches with higher significance. The $p$-values in our tests do \textit{not} factor for multiple hypothesis corrections, so at the moment we are only using them as relative measures of model quality.
+
+It is validating to see that many of the similar modules, such as the \texttt{BRCA1} and \texttt{DOXORUBICIN}, are cancer related, given that our expression assay was from tumor cells.
 
 - posterior predictive checks
 - no intrusion testing meaningful
@@ -119,38 +157,13 @@ Posterior predictive checks to test the mutual information between the each cell
 - likelihood
 - performance metrics
 
-
 \section{Dirichlet Mixture Model} 
 \label{mmsec}
 \subsection{Model Description} 
-    Algorithm~\ref{alg:example} describes the generative process for the mixture odel.
-
-    \begin{algorithm}[tb]
-       \caption{Mixture Model}
-       \label{alg:example}
-    \begin{algorithmic}
-       \STATE {\bfseries Input:} data $x_i$, size $m$
-       \REPEAT
-       \STATE Initialize $noChange = true$.
-       \FOR{$i=1$ {\bfseries to} $m-1$}
-       \IF{$x_i > x_{i+1}$} 
-       \STATE Swap $x_i$ and $x_{i+1}$
-       \STATE $noChange = false$
-       \ENDIF
-       \ENDFOR
-       \UNTIL{$noChange$ is $true$}
-    \end{algorithmic}
-    \end{algorithm}
 \subsection{Implementation} 
 \subsection{Experiments}  
 - comparison with pe'er paper
 
-
-\section{Dynamic Time Model} 
-\label{dtmsec}
-\subsection{Model Description} 
-\subsection{Implementation} 
-\subsection{Experiments} 
 
 
 \section{Integrated Topic-Clustering Model} 
@@ -167,6 +180,8 @@ Posterior predictive checks to test the mutual information between the each cell
 \subsection{Implementation} 
 \subsection{Experiments} 
 
+\section{Conclusions} 
+\label{nonparametricsec}
 
 % In the unusual situation where you want a paper to appear in the
 % references without citing it in the main text, use \nocite
@@ -179,7 +194,7 @@ Posterior predictive checks to test the mutual information between the each cell
 \section{Appendix} 
 
 \subsection{Breakdown of Work}
-The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by Skanda (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). Karren completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. We believe the authors contributed equally in this work.
+The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). KY completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}. The authors contributed equally in this work.
 
 \subsection{Latent Dirichlet Allocation}
 \label{ldaappendix}
@@ -188,9 +203,27 @@ For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fix
 \begin{figure*}
     \centering
     \includegraphics[width=1\textwidth]{figs/pathways}
-    \caption{Matches between the gene collections found in LDA topics and published gene sets in \texttt{MSigDB}. Cluster size refers to the number of topics in the model}
+    \caption{Matches between the gene collections found in LDA topics and published gene sets in \texttt{MSigDB}. `Cluster size' refers to the number of topics in the model}
     \label{fig:pathways}
 \end{figure*}
+
+\subsection{Dynamic Topic Model}
+\label{dtmappendix}
+Here is a description of the generative process for our dynamic topic model:
+\begin{enumerate}
+    \item Draw a new topic composition hyperparameter \\ $\beta \leftarrow \mathbb{N}(\beta_{t-1}, \sigma I^2)$
+    \item Draw a new document composition hyperparameter \\ $\alpha \leftarrow \mathbb{N}(\alpha_{t-1}, \delta I^2)$
+    \item For each document: 
+    \begin{enumerate}
+        \item Draw a new document topic distribution \\ $\theta \leftarrow \pi(\mathbb{N}(\alpha_t))$
+        \item For every word in the document:
+        \begin{enumerate}
+            \item Draw the word topic assignment \\ $Z \leftarrow$ Mult$(\theta)$
+            \item Draw the word identity \\ $Z \leftarrow$ Mult$(\pi(\beta_{t,z}))$
+        \end{enumerate}
+    \end{enumerate}
+\end{enumerate}
+Here, $\pi(x_i)$ is the softmax function $\frac{exp(x_i)}{\sum_k exp(x_k)}$ \cite{dtm}.
 
 \subsection{LDA vs. IBP-DP}
 One drawback to the HDP is that there tends to be a correlation between how frequently a topic appears across all documents and how prevalent this topic is within documents that it appears in. Williamson et al. \cite{IBP} proposed the 'focused topic model' to overcome this drawback. In their model, each topic $k = 1,2,...$ has a relative prevalence $\phi_k \sim Gamma(\gamma, 1)$ and a population frequency $\pi_k = \prod^k_{j=1} \mu_k$, where each $\mu_k \sim Beta(\alpha, 1) $. For each document $m$, whether topic $k$ appears is sampled as $b_{mk} \sim Bernoulli(\pi_k)$, and the topic proportions are sampled as $\theta_m \sim Dirichlet(b_m \cdot \phi)$. \\
