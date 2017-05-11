@@ -169,7 +169,7 @@ With more time, we would ideally repeat the experiments to obtain confidence int
 \label{mmsec}
 \subsection{Model Description} 
 The second question -- whether we could learn cell groupings -- we tackled using a canonical Gaussian mixture model. In brief, the model assigns every data point to a cluster; every cluster is Gaussian whose parameters are learned through posterior inference. A plate diagram can be found at \cite{mmplate}. This model is different from the previously mentioned Pe'er papers which use Dirichlet Processes Mixtures to study expression data. By plotting 
-histograms of raw gene expression values, we've found that for many genes the distribution is mostly normal across our data points. This hints that the generative process in a Gaussian mixture model is plausible.
+histograms of whitened gene expression values, we've found that for many genes the distribution is Gaussian across our data points. This hints that the generative process in a Gaussian mixture model is plausible.
 
 \subsection{Implementation} 
 We implemented the mixture model in \textbf{Edward}, the probabalistic programming framework on top of Tensorflow. This allowed us to experiment with different samplers and variational inference approximations. The results we show below are for our runs using a Gibbs sampler, with a fixed burn-in of number of samples (200), a fixed number of sampling iterations (500).
