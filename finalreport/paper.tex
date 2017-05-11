@@ -2,6 +2,7 @@
 
 % For figures
 \usepackage{graphicx} % more modern
+\usepackage{booktabs}
 \usepackage{subfigure} 
 \usepackage{amsfonts}
 
@@ -164,21 +165,34 @@ After extracting the mode of learned parameters, we evaluated the log-likelihood
 
 With more time, we would ideally repeat the experiments to obtain confidence intervals on these experiments, and examine the gene-module/cell/time-slice mutual information.
 
-\section{Dirichlet Mixture Model} 
+\section{Mixture Model} 
 \label{mmsec}
 \subsection{Model Description} 
+The second question we wanted to address
+- comparison with pe'er paper
 \subsection{Implementation} 
 \subsection{Experiments}  
-- comparison with pe'er paper
-
-
+- 500 sampling iterations per run
+\begin{table}[h]
+    \centering
+    \label{mmtable}
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \# of Clusters & \# of Clusters Used \\ \midrule
+        10                 & 3                                                         \\
+        25                 & 9                                                         \\
+        50                 & 16                                                        \\
+        75                 & 18                                                        \\
+        100                & 20                                                        \\ \bottomrule
+    \end{tabular}
+    \caption{The number of clusters defined in the model appears to be more than the actual number of unique clusters assigned to the data points after posterior estimation. The estimated true number of categories is slightly above 10.}
+\end{table}
 
 \section{Integrated Topic-Clustering Model} 
 \label{intsec}
 \subsection{Model Description} 
 \subsection{Implementation} 
 \subsection{Experiments} 
-
 
 
 \section{Non-parametric Models: IBP and HDP} 
@@ -194,17 +208,20 @@ With more time, we would ideally repeat the experiments to obtain confidence int
 % references without citing it in the main text, use \nocite
 % \nocite{langley00}
 
+\section{Breakdown of Work}
+The implementation(s) and experiments involving LDA, Gaussian Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). KY completed the implementations and experiments involved Integrated Topic-Clustering, non-parametric models, (Section~\ref{intsec} and Section~\ref{nonparametricsec}) and the shared gene enrichment test implementation. The authors contributed equally in this work.
+
 \bibliography{citations}
 \bibliographystyle{sty/icml2013}
 
 
 \section{Appendix} 
 
-\subsection{Breakdown of Work}
-The implementation(s) and experiments involving LDA, Dirichlet Mixtures, and Dynamic Time Model was completed by SK (Section~\ref{ldasec}, Section~\ref{mmsec}, and Section~\ref{dtmsec}). KY completed the implementations and experiments involved Integrated Topic-Clustering, Non-Parametric models, and the shared gene enrichment test implementation (Section~\ref{intsec} and Section~\ref{nonparametricsec}). The authors contributed equally in this work.
-
 \subsection{Latent Dirichlet Allocation}
 \label{ldaappendix}
+
+This section includes Figure~\ref{fig:pathways} on the next page.
+
 For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). We didn't extensively explore varying these values, but trying out significantly more iterations (700) didn't seem to change the topic's word distributions significantly. There was one sampling chain on each of four cores.
 
 \begin{figure*}
@@ -216,6 +233,9 @@ For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fix
 
 \subsection{Dynamic Topic Model}
 \label{dtmappendix}
+
+This section includes Figure~\ref{fig:pathwaysdtm} on the next page.
+
 Here is a description of the generative process for our dynamic topic model:
 \begin{enumerate}
     \item Draw a new topic composition hyperparameter \\ $\beta \leftarrow \mathbb{N}(\beta_{t-1}, \sigma I^2)$
@@ -238,5 +258,18 @@ Here, $\pi(x_i)$ is the softmax function $\frac{exp(x_i)}{\sum_k exp(x_k)}$ \cit
     \caption{Matches between the gene collections found using a dynamic topic model and published gene sets in \texttt{MSigDB}. $k$ refers to the number of topics in the model. $t$ refers to the time slice in the model.}
     \label{fig:pathwaysdtm}
 \end{figure*}
+
+\subsection{Gaussian Mixture Model}
+
+For our Gibb's sampler, we had a fixed burn-in of number of samples (200), a fixed number of sampling iterations after that (500). For time reasons, we didn't extensively explore varying these values. Figure~\ref{fig:llmm} describes the log-likelihood evaluation of the estimated posteriors.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\textwidth]{figs/llmm}
+    \caption{Log-likelihood of held-out test set, on three seperate runs of Gibbs sampling procedure, described above}
+    \label{fig:llmm}
+\end{figure*}
+
+\label{mmappendix}
 
 \end{document} 
